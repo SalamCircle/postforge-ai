@@ -1,0 +1,11 @@
+{
+  "date": "YYYY-MM-DD",
+  "text": "Example educational post. Replace with reviewed original content and verified sources.",
+  "visual": {
+    "title": "Security basics",
+    "points": [
+      "Verify unexpected requests",
+      "Use multifactor authentication"
+    ]
+  }
+}
