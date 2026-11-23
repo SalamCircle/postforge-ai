@@ -1,0 +1,26 @@
+name: Security Audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'tests/**'
+      - 'requirements.txt'
+      - '.github/workflows/**'
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Install free security scanners
+        run: python3 -m pip install --disable-pip-version-check pip-audit bandit
+      - name: Dependency vulnerability scan
+        run: python3 -m pip_audit -r requirements.txt --strict
+      - name: Review all Bandit findings (informational)
+        run: python3 -m bandit -r scripts --exit-zero
+      - name: Enforce no medium or high findings
+        run: python3 -m bandit -r scripts -ll
