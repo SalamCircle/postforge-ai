@@ -1,8 +1,10 @@
 import {Client,view} from "./api.mjs";
+import {seal,unseal} from "./vault.mjs";
 "use strict";
 if(window.top!==window.self){document.body.replaceChildren(document.createTextNode("Open the mobile studio directly in your browser."));throw Error("Embedded use is disabled");}
 const $=id=>document.getElementById(id);
 let client=null, writeEnabled=false, pending=null, repoName="";
+const VAULT="postforge.mobile.vault.v1";
 let data=null, selected=null, editing=null, busy=false;
 const lines=s=>s.split("\n").map(v=>v.trim()).filter(Boolean);
 const json=o=>JSON.stringify(o,null,2);
@@ -35,7 +37,20 @@ $("copy-brief").addEventListener("click",async()=>{try{await navigator.clipboard
 for(const b of document.querySelectorAll("[data-tab]"))b.addEventListener("click",()=>tab(b.dataset.tab));for(const id of ["filter","search"])$(id).addEventListener("input",calendar);
 for(const id of ["start","days"])$(id).addEventListener("change",()=>load().catch(e=>note(e.message,true)));$("refresh").addEventListener("click",()=>load().catch(e=>note(e.message,true)));
 function fillBrand(){const brand=data.brief.brand||{};for(const k of ["name","audience","voice","goals","pillars","avoid"])$("brand-form").elements[k].value=Array.isArray(brand[k])?brand[k].join("\n"):brand[k]||"";}
-$("connect-form").addEventListener("submit",async e=>{e.preventDefault();if(busy)return;busy=true;try{repoName=$("repo").value.trim();const secret=$("access").value;const branch=$("branch").value;writeEnabled=$("enable-write").checked;client=new Client(repoName,secret,branch);$("access").value="";await load();fillBrand();$("connect-panel").hidden=true;$("connection").hidden=false;$("workspace").hidden=false;connectionStatus();$("runs-link").href="https://github.com/"+repoName.split("/").map(encodeURIComponent).join("/")+"/actions/workflows/mobile-studio.yml";note("Connected to recognised PostForge installation. Data stays in your private repository.");}catch(err){client=null;data=null;$("workspace").hidden=true;$("connection").hidden=true;$("access").value="";note(err.message,true);}finally{busy=false;}});
+function showVault(){try{$("unlock-panel").hidden=!localStorage.getItem(VAULT);}catch{$("unlock-panel").hidden=true;}}
+$("remember").addEventListener("change",()=>{$("vault-fields").hidden=!$("remember").checked;for(const id of ["vault-pass","vault-repeat"])$(id).required=$("remember").checked;});
+$("enable-write").addEventListener("change",()=>{if($("enable-write").checked){$("remember").checked=false;$("remember").dispatchEvent(new Event("change"));}$("remember").disabled=$("enable-write").checked;});
+async function connect(credential,write=false){
+ repoName=credential.repo;writeEnabled=write;client=new Client(repoName,credential.token,credential.branch);await load();fillBrand();$("connect-panel").hidden=true;$("connection").hidden=false;$("workspace").hidden=false;connectionStatus();$("runs-link").href="https://github.com/"+repoName.split("/").map(encodeURIComponent).join("/")+"/actions/workflows/mobile-studio.yml";note("Connected to recognised PostForge installation. Data stays in your private repository.");
+}
+function failed(err){client=null;data=null;$("workspace").hidden=true;$("connection").hidden=true;$("connect-panel").hidden=false;note(err.message,true);}
+$("connect-form").addEventListener("submit",async e=>{e.preventDefault();if(busy)return;busy=true;const credential={repo:$("repo").value.trim(),token:$("access").value.trim(),branch:$("branch").value};const remember=$("remember").checked,write=$("enable-write").checked,password=$("vault-pass").value,repeat=$("vault-repeat").value;
+ $("access").value="";$("vault-pass").value="";$("vault-repeat").value="";
+ try{if(remember&&(write||password!==repeat||password.length<12))throw Error("Use a matching separate passphrase of at least 12 characters and read-only access.");await connect(credential,write);if(remember){try{localStorage.setItem(VAULT,await seal(credential,password));showVault();note("Connected. Encrypted device unlock saved; use Lock to disconnect.");}catch{note("Connected, but the encrypted connection could not be saved.",true);}}}catch(err){failed(err);}finally{busy=false;}
+});
+$("unlock-form").addEventListener("submit",async e=>{e.preventDefault();if(busy)return;busy=true;const password=$("unlock-pass").value;$("unlock-pass").value="";try{const credential=await unseal(localStorage.getItem(VAULT),password);await connect(credential,false);}catch(err){failed(err);}finally{busy=false;}});
+$("forget").addEventListener("click",()=>{if(window.confirm("Forget encrypted connection on this device?")){try{localStorage.removeItem(VAULT);showVault();note("Saved connection removed from this browser. Revoke its token in GitHub if needed.");}catch{note("Unable to clear browser storage.",true);}}});
+showVault();
 $("check-run").addEventListener("click",async()=>{if(busy||!pending)return;if(pending==="unknown"){if(!window.confirm("Check GitHub workflow history first. Clear the pending marker and reload only after reconciling the result?"))return;pending=null;$("check-run").hidden=true;await load().catch(e=>note(e.message,true));return;}busy=true;try{const result=await client.run(pending);if(result.status!=="completed"){note("Action is "+result.status+". Check again later.");return;}pending=null;$("check-run").hidden=true;await load();fillBrand();note(result.conclusion==="success"?"GitHub reports success. Workspace refreshed.":"Action did not succeed ("+result.conclusion+"). Inspect GitHub logs.",result.conclusion!=="success");}catch(e){note(e.message,true);}finally{busy=false;}});
 $("disconnect").addEventListener("click",()=>{client=null;data=null;location.reload();});
 if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("./sw.js").catch(()=>{});
