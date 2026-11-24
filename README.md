@@ -62,30 +62,6 @@ This is the clean-history source distribution. It has **no deployment token or p
 ## Licence
 [MIT](LICENSE). See [Security](SECURITY.md) for responsible reporting.
 
-## Guided setup links
-
-| Step | Open |
-|---|---|
-| Create private deployment | [Create repository](https://github.com/new) |
-| Create developer application | [LinkedIn Developer Portal](https://www.linkedin.com/developers/apps) |
-| Request publishing access | [Share on LinkedIn instructions](https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/share-on-linkedin) |
-| Request identity access | [OpenID Connect instructions](https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2) |
-| Generate member token | [OAuth tools](https://www.linkedin.com/developers/tools/oauth) |
-| Secure token storage | [GitHub Secrets instructions](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions) |
-| Configure connector | [GitHub installations](https://github.com/settings/installations) |
-| Check tests | [Community CI](https://github.com/SalamCircle/postforge-ai/actions) |
-| Inspect publication | [LinkedIn feed](https://www.linkedin.com/feed/) |
-
-Follow the [full guided setup](docs/SETUP.md) before enabling live mode.
-
-## Visual onboarding
-
-[Illustrated setup guide](docs/SETUP.md) · [Verification walkthrough](docs/VERIFY.md)
-
-![Setup checklist](docs/assets/setup-visual.svg)
-
-![Verification checklist](docs/assets/verification.svg)
-
 ## Multiple posts and duplicate protection
 
 ![Multi-post automation workflow](docs/assets/multi-post-flow.svg)
