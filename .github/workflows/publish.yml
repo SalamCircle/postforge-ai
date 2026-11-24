@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths: ['queue/*.json']
   workflow_dispatch:
+  schedule:
+    - cron: '0 8,9 * * *'
 permissions: {}
 concurrency:
   group: postforge-publish
@@ -23,6 +25,10 @@ jobs:
       - name: Verify regression tests before publishing
         run: python3 -m unittest discover -s tests -v
       - run: |
+          if [ "${{ github.event_name }}" = schedule ] && [ "$(TZ=Europe/London date +%H)" != 09 ]; then
+            echo 'Outside 9 AM UK scheduled window; skipping'
+            exit 0
+          fi
           git config user.name 'postforge-bot'
           git config user.email 'postforge-bot@users.noreply.github.com'
           python3 scripts/publish.py
