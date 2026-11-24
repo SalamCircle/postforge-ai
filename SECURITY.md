@@ -1,2 +1,0 @@
-# Security
-Report vulnerabilities privately through GitHub private vulnerability reporting if enabled, or contact the maintainer privately. Never include tokens or personal data in public issues. Live publishing is restricted to private main-branch deployments and explicit LIVE_PUBLISH=true. Review dependencies, branch access, connector permissions and GitHub billing before deployment. A source review is not a penetration test.
