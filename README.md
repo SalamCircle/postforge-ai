@@ -6,16 +6,23 @@
 
 MIT-licensed, LLM-independent publishing engine. LinkedIn is the first supported platform. External AI tools supply researched content; GitHub Actions validates, renders and publishes it using the member API.
 
-## Start here — beginner walkthrough
+## Start here — five steps to publish
 
-[![Open guided setup](docs/assets/buttons/repository.svg)](docs/START-HERE.md)
+![PostForge AI quick-start flow](docs/assets/publish-anytime.svg)
 
-[Follow the complete step-by-step visual walkthrough](docs/START-HERE.md).
+| Step | What to do | Open setup |
+|---|---|---|
+| 01 | Create your own private deployment | [Create repository](https://github.com/new) |
+| 02 | Enable LinkedIn API products and generate a token | [Developer apps](https://www.linkedin.com/developers/apps) · [OAuth tools](https://www.linkedin.com/developers/tools/oauth) |
+| 03 | Add `LINKEDIN_ACCESS_TOKEN` as a repository secret | [Secrets walkthrough](docs/START-HERE.md#step-5--store-your-token-securely) |
+| 04 | Run a dry test, then set `LIVE_PUBLISH` to `true` as a repository variable | [Variables and live mode](docs/START-HERE.md#step-8--verify-your-live-post) |
+| 05 | Draft with your chosen AI and publish | [Publish anytime](#publish-anytime--your-choice-of-ai) |
 
+[Full beginner walkthrough](docs/START-HERE.md) · [GitHub Secrets documentation](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions) · [GitHub Variables documentation](https://docs.github.com/en/actions/learn-github-actions/variables)
+
+**Open your own private repository → Settings → Secrets and variables → Actions.** Use the Secrets tab for the token and the Variables tab for the live switch. Do not configure credentials in the public source repository.
 
 ## Publish anytime — your choice of AI
-
-![Visual guide to on-demand and scheduled publishing](docs/assets/publish-anytime.svg)
 
 PostForge AI is free MIT-licensed software, not a bundled AI subscription. Draft with any LLM (ChatGPT, Gemini, Claude, a local model) or write manually. Review the content before saving it. No particular LLM API key is required by the publisher.
 
