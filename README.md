@@ -10,7 +10,7 @@ MIT-licensed, LLM-independent publishing engine. LinkedIn is the first supported
 
 **2.0.0-alpha.1 — not production-ready.** Existing V1 publishing remains available. V2 adds offline history, queue inspection, draft planning and schedule previews. Live engagement and automatic production upgrades are not yet verified.
 
-[Direct V2 preview setup](docs/ALPHA-INSTALL.md) · [Upgrade rehearsal](docs/ALPHA-INSTALL.md) · [Stable V1](https://github.com/SalamCircle/postforge-ai/tree/main)
+[Start with V2 — fresh installation](docs/INSTALL-V2.md) · [Upgrade rehearsal](docs/ALPHA-INSTALL.md) · [Stable V1](https://github.com/SalamCircle/postforge-ai/tree/main)
 
 ## Choose your experience
 
