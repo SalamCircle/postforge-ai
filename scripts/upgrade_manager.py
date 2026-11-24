@@ -3,7 +3,7 @@ import argparse
 import hashlib
 import json
 import pathlib
-import shutil
+import base64
 import subprocess
 
 FILES = ("scripts/v2_manager.py", "tests/test_v2_manager.py", "docs/V2.md", "docs/VERSIONING.md", "scripts/upgrade_manager.py", "tests/test_upgrade_manager.py", "VERSION", "docs/assets/logo-v2.svg")
@@ -50,6 +50,13 @@ def upgrade(root, source):
     for n in FILES:
         if not safe(source, n).is_file():
             raise ValueError("Incomplete source: " + n)
+    readme = safe(root, "README.md")
+    original = readme.read_bytes() if readme.exists() else None
+    branded = None
+    if original is not None:
+        branded = original.decode("utf-8").replace("docs/assets/logo.svg", "docs/assets/logo-v2.svg", 1)
+        branded = "# PostForge AI V2 — Alpha\n\n" + branded.removeprefix("# PostForge AI\n")
+        branded = branded.encode("utf-8")
     created = []
     try:
         for n in FILES:
@@ -58,15 +65,21 @@ def upgrade(root, source):
             with p.open("xb") as out:
                 created.append(p)
                 out.write(safe(source, n).read_bytes())
+        if branded is not None:
+            readme.write_bytes(branded)
         if snapshot(root) != before:
             raise ValueError("Protected files changed")
         manifest = {"version": 2, "base_commit": git(root, "rev-parse", "HEAD"),
-                    "added": {n: digest(root / n) for n in FILES}}
+                    "added": {n: digest(root / n) for n in FILES},
+                    "readme_original": base64.b64encode(original).decode("ascii") if original is not None else None,
+                    "readme_hash": digest(readme) if branded is not None else None}
         with (root / MARKER).open("x") as out:
             created.append(root / MARKER)
             json.dump(manifest, out, indent=2)
         return manifest
     except Exception:
+        if original is not None:
+            readme.write_bytes(original)
         for p in reversed(created):
             p.unlink(missing_ok=True)
         raise
@@ -80,7 +93,12 @@ def rollback(root):
     for n in FILES:
         if digest(safe(root, n)) != data["added"][n]:
             raise ValueError("Modified V2 file; manual review required")
+    readme = safe(root, "README.md")
+    if data.get("readme_hash") and digest(readme) != data["readme_hash"]:
+        raise ValueError("Modified README; manual review required")
     before = snapshot(root)
+    if data.get("readme_original") is not None:
+        readme.write_bytes(base64.b64decode(data["readme_original"], validate=True))
     for n in FILES:
         safe(root, n).unlink()
     marker.unlink()
