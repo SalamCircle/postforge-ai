@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "PostForge AI V2 Content Studio",
-  "short_name": "PostForge V2",
+  "name": "PostForge AI V2 Pro Content Studio",
+  "short_name": "PostForge V2 Pro",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
