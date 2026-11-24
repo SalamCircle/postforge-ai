@@ -1,0 +1,2 @@
+# V2 alpha — developer preview only
+Use a local checkout of this public branch. Run `python -m unittest discover -s tests -v` before use. For a simulated migration use a disposable clean V1 clone and `python scripts/upgrade_manager.py upgrade /path/to/test-v1 --source .`. Do not enable live publishing or migrate production using this preview. Existing V1 users can stay on main. The automatic production workflow is not released.
