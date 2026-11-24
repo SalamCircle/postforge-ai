@@ -1,0 +1,42 @@
+name: Upgrade to V2 alpha
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type UPGRADE ALPHA after backing up and pausing other writers'
+        required: true
+        type: string
+permissions: {}
+concurrency:
+  group: postforge-publish
+  cancel-in-progress: false
+jobs:
+  migrate:
+    if: github.event.repository.private && github.ref == 'refs/heads/main' && inputs.confirmation == 'UPGRADE ALPHA'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+      - name: Fetch pinned public alpha source
+        run: |
+          git clone --no-checkout https://github.com/SalamCircle/postforge-ai.git "$RUNNER_TEMP/postforge-source"
+          git -C "$RUNNER_TEMP/postforge-source" checkout --detach f4e0aad2c3c9e6df02e339c83aa893d2dd15e134
+      - name: Install and verify without LinkedIn credentials
+        run: |
+          python3 -m pip install -r requirements.txt
+          python3 -m unittest discover -s tests -v
+          python3 "$RUNNER_TEMP/postforge-source/scripts/upgrade_manager.py" upgrade "$GITHUB_WORKSPACE" --source "$RUNNER_TEMP/postforge-source"
+          python3 -m unittest discover -s tests -v
+          test "$(cat VERSION)" = "2.0.0-alpha.1"
+      - name: Commit only allowlisted changes and push without force
+        run: |
+          git add -- README.md VERSION docs/assets/logo-v2.svg docs/V2.md docs/VERSIONING.md scripts/v2_manager.py scripts/upgrade_manager.py tests/test_v2_manager.py tests/test_upgrade_manager.py .postforge-v2.json
+          git diff --cached --check
+          git config user.name postforge-upgrade
+          git config user.email postforge-upgrade@users.noreply.github.com
+          git commit -m "Install PostForge V2 alpha"
+          git push origin HEAD:main
