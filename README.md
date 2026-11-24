@@ -20,6 +20,45 @@ MIT-licensed, LLM-independent publishing engine. LinkedIn is the first supported
 
 Keep V1, or choose V2 after its release. Separate authorised accounts can use independent private deployments.
 
+## Discover V2 Core — Content Studio
+
+**Turn your next post into a repeatable content strategy.** Use your preferred AI, keep your brand context and manage drafts, reviews, scheduling dates and publication receipts in one repository.
+
+> **Development preview:** the Content Studio implementation is undergoing private verification. The public alpha does not yet include the new engine. The calendar below is an illustrative design, not a working web dashboard. Existing daily publishing remains available; advanced engagement requires separately approved LinkedIn API access.
+
+[![Discover the eight Content Studio capabilities](docs/assets/studio-overview.svg)](docs/INSTALL-V2.md)
+
+### From idea to publication
+
+![Six-step content workflow](docs/assets/studio-workflow.svg)
+
+### Your content calendar
+
+![Illustrative content calendar with example posts and statuses](docs/assets/studio-calendar-preview.svg)
+
+### Start with a conversation
+
+![Example AI content strategy prompt](docs/assets/studio-ai-prompt.svg)
+
+<details>
+<summary>Copy the example AI prompt</summary>
+
+```text
+Act as my personal content strategist using PostForge AI V2 Content Studio.
+
+Read my stored brand profile, professional goals, previous publications, content calendar and research sources. Create a 30-day LinkedIn content strategy relevant to my audience. Research reliable sources, avoid repeated topics, organise related ideas into content series and prepare original drafts with appropriate visuals.
+
+Save everything as drafts. Do not approve, queue or publish anything until I have reviewed it.
+```
+
+</details>
+
+### Explore what Core brings together
+
+![Content Studio capabilities and limitations](docs/assets/studio-capabilities.svg)
+
+[Explore setup and availability](docs/INSTALL-V2.md)
+
 ## Start here — five steps to publish
 
 **From setup to your first post.**
