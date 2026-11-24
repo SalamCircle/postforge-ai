@@ -1,13 +1,14 @@
 name: Security Audit
 on:
   push:
-    branches: [main]
+    branches: [v2-alpha]
     paths:
       - 'scripts/**'
       - 'tests/**'
       - 'requirements.txt'
       - '.github/workflows/**'
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -24,3 +25,21 @@ jobs:
         run: python3 -m bandit -r scripts --exit-zero
       - name: Enforce no medium or high findings
         run: python3 -m bandit -r scripts -ll
+      - name: Verify patched V2 artwork and regression tests offline
+        env:
+          LIVE_PUBLISH: 'false'
+          LINKEDIN_ACCESS_TOKEN: ''
+        run: |
+          python3 -m pip install -r requirements.txt
+          python3 -m unittest discover -s tests -v
+          python3 - <<'PY'
+          import io
+          from PIL import Image
+          from scripts.publish import render_v2_assets
+          data = render_v2_assets()
+          with Image.open(io.BytesIO(data)) as image:
+              assert image.format == "JPEG"
+              assert image.size == (1280, 1000)
+              image.verify()
+          print("Patched V2 artwork conversion passed")
+          PY
