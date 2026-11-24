@@ -33,12 +33,26 @@ def validate(item, day):
         points = v.get("points")
         if not isinstance(points, list) or not 2 <= len(points) <= 4 or any(not isinstance(p, str) or not 1 <= len(p) <= 80 for p in points):
             raise ValueError("Invalid visual points")
+    link = item.get("link_preview")
+    if link is not None:
+        if v is not None or not isinstance(link, dict):
+            raise ValueError("Link preview cannot be combined with generated visual")
+        if (link.get("source") != "https://github.com/SalamCircle/postforge-ai" or
+            link.get("poster_url") not in {"https://raw.githubusercontent.com/SalamCircle/postforge-ai/main/docs/assets/postforge-ai-followup.jpg", "local:v2-approved-assets"}):
+            raise ValueError("Unapproved link preview source or poster")
+        if (not isinstance(link.get("title"), str) or not 1 <= len(link["title"]) <= 100 or
+            not isinstance(link.get("description"), str) or not 1 <= len(link["description"]) <= 250):
+            raise ValueError("Invalid link preview metadata")
+        if link["source"] not in text:
+            raise ValueError("Repository URL must also appear in caption")
     return item
 
-def request(url, token, payload=None, raw=None, method=None):
+def request(url, token, payload=None, raw=None, method=None, raw_mime="image/png"):
     if not upload_url_ok(url):
         raise ValueError("Untrusted endpoint")
-    headers = {"Authorization": "Bearer " + token, "Content-Type": "image/png" if raw is not None else "application/json", "X-Restli-Protocol-Version": "2.0.0"}
+    headers = {"Authorization": "Bearer " + token, "Content-Type": raw_mime if raw is not None else "application/json", "X-Restli-Protocol-Version": "2.0.0"}
+    if urllib.parse.urlsplit(url).path.startswith("/rest/"):
+        headers["Linkedin-Version"] = os.environ.get("LINKEDIN_API_VERSION", "202609")
     data = raw if raw is not None else json.dumps(payload).encode() if payload is not None else None
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
@@ -136,6 +150,90 @@ def render(visual):
     image.save(output, format="PNG", optimize=True)
     return output.getvalue()
 
+def render_v2_assets():
+    """Rasterize the two repository-owned SVG assets without remote resources."""
+    import io
+    import cairosvg
+    from PIL import Image
+    canvas = Image.new("RGB", (1280, 1000), "#ffffff")
+    for name, width, height, position in (
+        ("logo-v2.svg", 200, 200, (540, 35)),
+        ("edition-v2.svg", 1200, 656, (40, 280)),
+    ):
+        data = (ROOT / "docs" / "assets" / name).read_bytes()
+        if len(data) > 100000 or any(x in data.lower() for x in (b"<!doctype", b"<!entity", b"href=", b"url(", b"<image", b"<foreignobject")):
+            raise ValueError("Unsafe SVG asset")
+        png = cairosvg.svg2png(bytestring=data, output_width=width, output_height=height)
+        layer = Image.open(io.BytesIO(png)).convert("RGBA")
+        canvas.paste(layer, position, layer)
+    output = io.BytesIO()
+    canvas.save(output, format="JPEG", quality=95)
+    return output.getvalue()
+
+
+def fetch_approved_poster(url):
+    """Fetch only the exact uploaded public JPEG; no new artwork is generated."""
+    if url == "local:v2-approved-assets":
+        return render_v2_assets()
+    allowed = "https://raw.githubusercontent.com/SalamCircle/postforge-ai/main/docs/assets/postforge-ai-followup.jpg"
+    if url != allowed:
+        raise ValueError("Poster URL is not approved")
+    opener = urllib.request.build_opener(NoRedirect())
+    try:
+        with opener.open(urllib.request.Request(url), timeout=30) as response:
+            blob = response.read(6_000_001)
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(f"Poster fetch HTTP {exc.code}") from None
+    except urllib.error.URLError:
+        raise RuntimeError("Poster fetch failed") from None
+    if not blob.startswith(bytes([255, 216, 255])) or not 10_000 < len(blob) <= 6_000_000:
+        raise ValueError("Invalid or oversized uploaded JPEG poster")
+    if hashlib.sha256(blob).hexdigest() != "6ca6c5eb625f7f553ae90025fa884afd6f6de5d128ed3e505ab958fa607133f1":
+        raise ValueError("Poster bytes do not match the approved uploaded artwork")
+    return blob
+
+
+def publish_clickable_article(item, author, token, receipt, digest, day, path):
+    """Official article preview: clicking the preview opens the public GitHub source."""
+    link = item["link_preview"]
+    blob = fetch_approved_poster(link["poster_url"])
+    _, _, registered = request(
+        "https://api.linkedin.com/rest/images?action=initializeUpload",
+        token, {"initializeUploadRequest": {"owner": author}})
+    image_info = registered["value"]
+    image_urn = image_info["image"]
+    if not image_urn.startswith("urn:li:image:"):
+        raise ValueError("Unexpected image URN")
+    request(image_info["uploadUrl"], token, raw=blob, method="PUT", raw_mime="image/jpeg")
+    article = {
+        "author": author,
+        "commentary": item["text"],
+        "visibility": "PUBLIC",
+        "distribution": {
+            "feedDistribution": "MAIN_FEED",
+            "targetEntities": [],
+            "thirdPartyDistributionChannels": []
+        },
+        "content": {"article": {
+            "source": link["source"],
+            "thumbnail": image_urn,
+            "title": link["title"],
+            "description": link["description"]
+        }},
+        "lifecycleState": "PUBLISHED",
+        "isReshareDisabledByAuthor": False
+    }
+    record(receipt, {"status": "claimed", "fingerprint": digest,
+                     "date": day, "queue": path.name, "format": "linked_article"})
+    status, headers, _ = request("https://api.linkedin.com/rest/posts", token, article)
+    post_id = headers.get("X-RestLi-Id")
+    if status != 201 or not post_id:
+        raise RuntimeError("Article publication uncertain; inspect manually before retrying")
+    record(receipt, {"status": "published", "post_id": post_id, "visual": True,
+                     "fingerprint": digest, "date": day, "queue": path.name,
+                     "format": "linked_article", "source": link["source"]})
+
+
 def record(path, value):
     path.parent.mkdir(exist_ok=True)
     path.write_text(json.dumps(value, indent=2) + "\n")
@@ -177,6 +275,8 @@ def publish_one(path, day):
     digest = fingerprint(item["text"])
     visual = item.get("visual")
     png = render(visual) if visual else None
+    if item.get("link_preview", {}).get("poster_url") == "local:v2-approved-assets":
+        render_v2_assets()
     if os.environ.get("LIVE_PUBLISH") != "true":
         print("Dry run: queue and visual validated; no network request"); return
     token = os.environ.get("LINKEDIN_ACCESS_TOKEN")
@@ -185,6 +285,9 @@ def publish_one(path, day):
     member = profile["sub"]
     if not re.fullmatch(r"[A-Za-z0-9_-]+", member): raise ValueError("Invalid member ID")
     author = "urn:li:person:" + member
+    if item.get("link_preview"):
+        publish_clickable_article(item, author, token, receipt, digest, day, path)
+        return
     share = {"shareCommentary":{"text":item["text"]},"shareMediaCategory":"NONE"}
     if png:
         _, _, reg = request("https://api.linkedin.com/v2/assets?action=registerUpload", token, {"registerUploadRequest":{"recipes":["urn:li:digitalmediaRecipe:feedshare-image"],"owner":author,"serviceRelationships":[{"relationshipType":"OWNER","identifier":"urn:li:userGeneratedContent"}]}})
