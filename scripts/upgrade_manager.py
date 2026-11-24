@@ -6,7 +6,7 @@ import pathlib
 import shutil
 import subprocess
 
-FILES = ("scripts/v2_manager.py", "tests/test_v2_manager.py", "docs/V2.md", "docs/VERSIONING.md", "scripts/upgrade_manager.py", "tests/test_upgrade_manager.py")
+FILES = ("scripts/v2_manager.py", "tests/test_v2_manager.py", "docs/V2.md", "docs/VERSIONING.md", "scripts/upgrade_manager.py", "tests/test_upgrade_manager.py", "VERSION", "docs/assets/logo-v2.svg")
 MARKER = ".postforge-v2.json"
 
 def digest(path):
@@ -55,8 +55,8 @@ def upgrade(root, source):
         for n in FILES:
             p = safe(root, n)
             p.parent.mkdir(parents=True, exist_ok=True)
-            created.append(p)
             with p.open("xb") as out:
+                created.append(p)
                 out.write(safe(source, n).read_bytes())
         if snapshot(root) != before:
             raise ValueError("Protected files changed")
