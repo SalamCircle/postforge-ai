@@ -1,7 +1,7 @@
 // Browser-only GitHub adapter. No token persistence, external scripts or telemetry.
 export const FILE = /^(studio\/(?:brand\.json|(?:drafts|approvals|archive)\/[a-z0-9][a-z0-9-]{0,47}\.json)|queue\/\d{4}-\d{2}-\d{2}(?:-[A-Za-z0-9_-]{1,64})?\.json|state\/[A-Za-z0-9_-]{1,100}\.json)$/;
 const ID=/^[a-f0-9]{40}$/;
-const ACTIONS=new Set(["brand","draft","revise","import","schedule","approve","export","archive","cancel","stage-image","reschedule","publish-now"]);
+const ACTIONS=new Set(["brand","draft","revise","import","schedule","approve","export","archive","cancel","stage-image","reschedule","publish-now","delete","delete-many"]);
 const stable=v=>Array.isArray(v)?"["+v.map(stable).join(",")+"]":v&&typeof v==="object"?"{"+Object.keys(v).sort().map(k=>JSON.stringify(k)+":"+stable(v[k])).join(",")+"}":JSON.stringify(v);
 export async function digest(v){return [...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(stable(v))))].map(x=>x.toString(16).padStart(2,"0")).join("");}
 
@@ -110,7 +110,9 @@ export class Client{
     const sourceImages=pro&&regular("scripts/pro_images.py");
     const delivery=compatible&&regular("scripts/publish_reviewed.py")&&regular(".github/workflows/publish-reviewed.yml");
     const timedChecks=regular(".github/workflows/timed-publish.yml")&&(await this.readBlob(entries.get(".github/workflows/timed-publish.yml"),30000)).includes("17,47 * * * *");
-    return {version,pro,sourceImages,delivery,timedChecks,edition:pro?"V2 Pro":compatible?"V2":v2?"V2 Alpha":"V1 Publishing Engine",core:compatible,upgrade:!compatible,branch:this.#branch};
+    const automation=pro&&(await this.readBlob(entries.get(".github/workflows/pro-ai.yml"),30000)).includes("RESEARCH AND PUBLISH");
+    const deletion=compatible&&(await this.readBlob(entries.get("scripts/mobile_action.py"),30000)).includes('"delete-many"');
+    return {version,pro,sourceImages,delivery,timedChecks,automation,deletion,edition:pro?"V2 Pro":compatible?"V2":v2?"V2 Alpha":"V1 Publishing Engine",core:compatible,upgrade:!compatible,branch:this.#branch};
   }
   async snapshot(){
     this.head=null;this.writable=false;this.compatibility=null;this.#assets.clear();
@@ -129,14 +131,17 @@ export class Client{
   async dispatch(body){
     if(!this.writable||!ID.test(this.head)||!ACTIONS.has(body.action)||(body.action==="stage-image"&&!this.compatibility?.sourceImages))throw Error("Mobile write workflow is not installed on private main.");
     const payload=JSON.stringify({...body,head:this.head});if(new TextEncoder().encode(payload).length>60000)throw Error("Action too large; split your plan.");
+    if(["delete","delete-many"].includes(body.action)&&!this.compatibility?.deletion)throw Error("Install compatible draft deletion support first.");
     if(["publish-now","reschedule"].includes(body.action)&&!this.compatibility?.delivery)throw Error("Install reviewed delivery controls on private main.");
     if(body.action==="publish-now")return this.request("/actions/workflows/publish-reviewed.yml/dispatches",{ref:"main",inputs:{payload,confirmation:"PUBLISH NOW"}});
     return this.request("/actions/workflows/mobile-studio.yml/dispatches",{ref:"main",inputs:{payload,confirmation:"APPLY REVIEWED ACTION"}});
   }
   async generateDraft(request){
     if(!this.writable||!this.compatibility?.pro||!ID.test(this.head))throw Error("Install and configure V2 Pro on private main first.");
+    const mode=request.automation||"review", confirmations={review:"GENERATE DRAFT ONLY",queue:"RESEARCH AND QUEUE",publish:"RESEARCH AND PUBLISH"};
+    if(!Object.hasOwn(confirmations,mode)||(mode!=="review"&&!this.compatibility.automation))throw Error("Install compatible automation support first.");
     const payload=JSON.stringify({...request,head:this.head});if(new TextEncoder().encode(payload).length>10000)throw Error("AI request too large.");
-    return this.request("/actions/workflows/pro-ai.yml/dispatches",{ref:"main",inputs:{payload,confirmation:"GENERATE DRAFT ONLY"}});
+    return this.request("/actions/workflows/pro-ai.yml/dispatches",{ref:"main",inputs:{payload,confirmation:confirmations[mode]}});
   }
   async recentRuns(workflow){if(!["mobile-studio.yml","pro-ai.yml","publish-reviewed.yml"].includes(workflow))throw Error("Unsupported workflow");const result=await this.request("/actions/workflows/"+workflow+"/runs?branch=main&event=workflow_dispatch&per_page=10");if(!Array.isArray(result.workflow_runs))throw Error("Workflow history unavailable");return result.workflow_runs.filter(r=>/^\d+$/.test(String(r.id))&&r.head_branch==="main"&&r.event==="workflow_dispatch").slice(0,10);}
   async headChanged(){const r=await this.request("/git/ref/heads/"+this.#branch);return r.object?.sha!==this.head;}
