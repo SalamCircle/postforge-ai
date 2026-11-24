@@ -4,6 +4,36 @@ const ID=/^[a-f0-9]{40}$/;
 const ACTIONS=new Set(["brand","draft","revise","import","schedule","approve","export","archive","cancel"]);
 const stable=v=>Array.isArray(v)?"["+v.map(stable).join(",")+"]":v&&typeof v==="object"?"{"+Object.keys(v).sort().map(k=>JSON.stringify(k)+":"+stable(v[k])).join(",")+"}":JSON.stringify(v);
 export async function digest(v){return [...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(stable(v))))].map(x=>x.toString(16).padStart(2,"0")).join("");}
+
+/** Convert a wall-clock date/time to the existing publisher's UTC schema.
+ * Check both sides of timezone transitions; reject gaps and repeated times. */
+export function draftTiming(date,time="",timezone="Europe/London",now=Date.now()){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw Error("Choose a valid publication date.");
+  const midnight=Date.parse(date+"T00:00:00Z");
+  if(!Number.isFinite(midnight)||new Date(midnight).toISOString().slice(0,10)!==date)throw Error("Choose a valid publication date.");
+  if(!time)return {date};
+  if(!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time))throw Error("Choose a valid publication time.");
+  const wall=Date.parse(date+"T"+time+":00Z");
+  let fmt;
+  try{fmt=new Intl.DateTimeFormat("en-GB",{timeZone:timezone,calendar:"iso8601",numberingSystem:"latn",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"});}catch{throw Error("Choose a valid IANA timezone, such as Europe/London.");}
+  const wallAt=ms=>{const p=Object.fromEntries(fmt.formatToParts(new Date(ms)).map(x=>[x.type,x.value]));return Date.parse(p.year+"-"+p.month+"-"+p.day+"T"+p.hour+":"+p.minute+":"+p.second+"Z");};
+  const offsets=new Set();
+  for(let h=-48;h<=48;h+=3){const probe=wall+h*3600000;offsets.add(wallAt(probe)-probe);}
+  const matches=[...offsets].map(offset=>wall-offset).filter(ms=>wallAt(ms)===wall);
+  if(matches.length!==1)throw Error("This local time is ambiguous or does not exist because of a clock change. Choose another time or UTC.");
+  const utc=matches[0];
+  if(utc<=now)throw Error("Choose a future publication time.");
+  const iso=new Date(utc).toISOString();
+  if(!iso.endsWith(":00.000Z"))throw Error("Choose a time with minute precision.");
+  return {date:iso.slice(0,10),scheduled_at:iso.replace(".000Z","+00:00")};
+}
+export function timingFields(draft){
+  if(!draft.scheduled_at)return {date:draft.date,time:"",timezone:"Europe/London"};
+  // Show the exact stored instant in UTC, avoiding ambiguity on DST fold days.
+  const iso=new Date(draft.scheduled_at).toISOString();
+  return {date:iso.slice(0,10),time:iso.slice(11,16),timezone:"UTC"};
+}
+
 const queueName=d=>d.date+"-studio-"+d.id+".json";
 const payload=d=>Object.fromEntries(["date","text","visual","scheduled_at"].filter(k=>k in d).map(k=>[k,d[k]]));
 const today=()=>new Date().toISOString().slice(0,10);
