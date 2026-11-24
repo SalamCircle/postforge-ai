@@ -6,6 +6,14 @@
 
 MIT-licensed, LLM-independent publishing engine. LinkedIn is the first supported platform. External AI tools supply researched content; GitHub Actions validates, renders and publishes it using the member API.
 
+## Choose your experience
+
+[![V1 — Publishing Engine](docs/assets/edition-v1.svg)](#start-here--five-steps-to-publish)
+
+[![V2 — Presence Manager development roadmap](docs/assets/edition-v2.svg)](docs/V2-ROADMAP.md)
+
+Keep V1, or choose V2 after its release. Separate authorised accounts can use independent private deployments.
+
 ## Start here — five steps to publish
 
 **From setup to your first post.**
