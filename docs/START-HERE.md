@@ -2,7 +2,7 @@
 
 No coding experience required. Follow each step in order. All buttons open the relevant website; you must complete the actions yourself. Keep your deployment private and never share credentials with an AI assistant.
 
-![Independent deployments](assets/architecture.svg)
+![Five-step quick start](assets/publish-anytime.svg)
 
 ## Step 1 — Create your own private deployment
 
@@ -76,7 +76,14 @@ This is not an authentication or live upload test. Community test results do not
 
 ## Step 8 — Verify your live post
 
-Only after safe testing, confirm your account and content, set LIVE_PUBLISH=true in your private deployment and run PostForge Publisher on main. Inspect the receipt and actual image.
+Only after safe testing, confirm your account and content. In your private repository open **Settings → Secrets and variables → Actions → Variables → New repository variable**.
+
+| Field | Enter |
+|---|---|
+| Name | `LIVE_PUBLISH` |
+| Value | `true` |
+
+Click Add variable. [Official variables guide](https://docs.github.com/en/actions/learn-github-actions/variables). This is a repository variable, not a secret or an environment-specific variable. Then open Actions → PostForge Publisher → Run workflow on main. Inspect the receipt and actual image.
 
 [![Open LinkedIn feed](assets/buttons/linkedin.svg)](https://www.linkedin.com/feed/)
 
@@ -84,7 +91,11 @@ Only after safe testing, confirm your account and content, set LIVE_PUBLISH=true
 
 ---
 
-## Step 9 — Verify unattended automation
+## Step 9 — Publish on demand or schedule
+
+Commit a reviewed JSON queue file dated today (UTC) to main to trigger publishing, or manually run the workflow. For scheduled publishing, use a future UTC date; the default workflow checks at 9 AM UK time. GitHub may delay execution. Choose any LLM or write manually. No mandatory LLM subscription is required.
+
+## Step 10 — Verify unattended automation
 
 Use [the reusable prompts](PROMPTS.md) to schedule daily research and a queue write. Verify the scheduler, workflow, receipt and actual post independently. See [verification guide](VERIFY.md) and [full setup](SETUP.md). No guarantee of zero provider charges; check billing before running workflows.
 
