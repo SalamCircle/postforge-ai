@@ -2,3 +2,5 @@
 input[type=checkbox]{display:inline-block;width:auto;margin:0 8px 0 0}a{color:#075eae}#connection-label{overflow-wrap:anywhere;font-weight:650;margin-bottom:12px}@media(max-width:600px){button{min-height:44px}input,textarea,select{font-size:16px}}
 
 #post-dialog{width:min(92vw,680px);max-height:85dvh;overflow:auto;border:1px solid #dce5ef;border-radius:18px;padding:22px;color:#14253a;background:#fff}#post-dialog::backdrop{background:#14253a80}.post-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;padding:16px 0;border-block:1px solid #dce5ef}.post-title-button{display:block;text-align:left;background:none;color:#14253a;border:0;padding:0;white-space:normal;overflow-wrap:anywhere;width:100%;font-weight:700}.post-title-button:hover{text-decoration:underline}.row .rowbody{min-width:0}#linkedin-post{align-self:center}#post-title{overflow-wrap:anywhere}#edit-session{margin-bottom:12px}
+
+.reviewed-source-image{display:block;max-width:100%;height:auto;border-radius:12px;margin:12px 0}.image-candidate{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;overflow-wrap:anywhere}
