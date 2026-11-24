@@ -64,7 +64,9 @@ export class Client{
     if((path!==""&&!path.startsWith("/"))||path.includes("..")||path.includes("://"))throw Error("Invalid API route");
     const options={method:body?"POST":"GET",headers:{"Authorization":"Bearer "+this.#token,"Accept":"application/vnd.github+json","X-GitHub-Api-Version":"2026-03-10"},cache:"no-store",redirect:"error",credentials:"omit",referrerPolicy:"no-referrer"};
     if(body){options.headers["Content-Type"]="application/json";options.body=JSON.stringify(body);}
-    const r=await this.#fetch(this.#base+path,options);if(!r.ok)throw Error("GitHub request failed ("+r.status+"). Check repository, permissions or limits.");
+    // Explicitly request run details using the API version that supports this flag.
+    if(path.endsWith("/dispatches")&&body){options.headers["X-GitHub-Api-Version"]="2022-11-28";options.body=JSON.stringify({...body,return_run_details:true});}
+    const r=await this.#fetch(this.#base+path,options);if(!r.ok){const error=Error("GitHub request failed ("+r.status+"). Check repository, permissions or limits.");error.httpStatus=r.status;throw error;}
     return r.status===204?null:r.json();
   }
   async readBytes(entry,limit=100000){
@@ -132,5 +134,6 @@ export class Client{
     const payload=JSON.stringify({...request,head:this.head});if(new TextEncoder().encode(payload).length>10000)throw Error("AI request too large.");
     return this.request("/actions/workflows/pro-ai.yml/dispatches",{ref:"main",inputs:{payload,confirmation:"GENERATE DRAFT ONLY"}});
   }
+  async recentRuns(workflow){if(!["mobile-studio.yml","pro-ai.yml"].includes(workflow))throw Error("Unsupported workflow");const result=await this.request("/actions/workflows/"+workflow+"/runs?branch=main&event=workflow_dispatch&per_page=10");if(!Array.isArray(result.workflow_runs))throw Error("Workflow history unavailable");return result.workflow_runs.filter(r=>/^\d+$/.test(String(r.id))&&r.head_branch==="main"&&r.event==="workflow_dispatch").slice(0,10);}
   async run(id){if(!/^\d+$/.test(String(id)))throw Error("Invalid run ID");return this.request("/actions/runs/"+id);}
 }

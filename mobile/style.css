@@ -4,3 +4,24 @@ input[type=checkbox]{display:inline-block;width:auto;margin:0 8px 0 0}a{color:#0
 #post-dialog{width:min(92vw,680px);max-height:85dvh;overflow:auto;border:1px solid #dce5ef;border-radius:18px;padding:22px;color:#14253a;background:#fff}#post-dialog::backdrop{background:#14253a80}.post-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;padding:16px 0;border-block:1px solid #dce5ef}.post-title-button{display:block;text-align:left;background:none;color:#14253a;border:0;padding:0;white-space:normal;overflow-wrap:anywhere;width:100%;font-weight:700}.post-title-button:hover{text-decoration:underline}.row .rowbody{min-width:0}#linkedin-post{align-self:center}#post-title{overflow-wrap:anywhere}#edit-session{margin-bottom:12px}
 
 .reviewed-source-image{display:block;max-width:100%;height:auto;border-radius:12px;margin:12px 0}.image-candidate{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;overflow-wrap:anywhere}
+
+/* Shared V2 / V2 Pro approval experience */
+.nav-count{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 5px;margin-left:3px;background:#e5f1ff;border-radius:999px;font-size:12px;color:#075eae}
+.approval-item{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;white-space:normal;overflow-wrap:anywhere;background:#fff;color:#14253a;border:1px solid #dce5ef;border-radius:12px;padding:14px;margin:10px 0}
+.approval-item-title{font-size:16px;font-weight:700}.approval-item .muted{font-weight:400}
+.review-heading{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.review-heading h3{font-size:clamp(19px,4vw,25px);overflow-wrap:anywhere}.review-heading .eyebrow{margin:0 0 5px}
+.review-badge{border-radius:999px;padding:5px 10px;background:#e5f1ff;color:#075eae;font-size:12px;font-weight:700;flex-shrink:0;max-width:40%;overflow-wrap:anywhere}
+.review-badge[data-status=approved],.review-badge[data-status=published]{background:#eaf7ef;color:#087443}
+.review-meta{font-size:13px;color:#52657b;overflow-wrap:anywhere}.review-copy{font-size:16px;background:#f7f9fc;border:1px solid #e3eaf1;border-radius:12px;padding:18px;line-height:1.75}
+.review-sources{display:grid;gap:7px;overflow-wrap:anywhere}.review-sources h4{margin:12px 0 0}.review-sources a{font-size:14px}
+#review-actions{margin:18px 0}.schedule-details{border-top:1px solid #dce5ef;padding:12px 0}.schedule-details summary{cursor:pointer;color:#075eae;font-weight:650}
+.action-panel{border-left:4px solid #075eae;position:relative}.action-heading{display:flex;gap:12px;align-items:flex-start}.action-heading>div{min-width:0}.action-heading h3{margin-bottom:3px}.action-heading p{margin:0 0 12px;overflow-wrap:anywhere;font-size:14px}
+.action-indicator{width:22px;height:22px;border:3px solid #c9e0f7;border-top-color:#075eae;border-radius:50%;flex:none;margin-top:3px}
+.action-panel[data-state=pending] .action-indicator{animation:pf-spin 1s linear infinite}
+.action-panel[data-state=success]{border-left-color:#087443}.action-panel[data-state=success] .action-indicator{border-color:#087443;background:#eaf7ef}
+.action-panel[data-state=warning],.action-panel[data-state=error]{border-left-color:#a65b12}.action-panel[data-state=warning] .action-indicator,.action-panel[data-state=error] .action-indicator{border-color:#a65b12;background:#fff3e4}
+#action-history{align-self:center;font-size:14px}#recovery-list{display:grid;gap:8px;margin-top:12px}#recovery-list button{white-space:normal;text-align:left;overflow-wrap:anywhere}
+#action-dialog{width:min(92vw,460px);max-height:85dvh;overflow:auto;border:1px solid #dce5ef;border-radius:20px;padding:24px;color:#14253a;background:#fff;box-shadow:0 20px 65px #14253a40}#action-dialog::backdrop{background:#14253a80}
+#action-dialog .confirm-form{border:0;margin:0;padding:0}#action-dialog .actions{justify-content:flex-end}#confirm-text{line-height:1.65}
+@keyframes pf-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.action-panel[data-state=pending] .action-indicator{animation:none}}
+@media(max-width:600px){.review-copy{padding:14px}.review-heading{flex-wrap:wrap}.review-badge{max-width:100%}#review-actions button{flex:1 1 44%;white-space:normal}#action-dialog{padding:20px}.action-panel .actions button{white-space:normal}}
