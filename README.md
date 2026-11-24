@@ -12,7 +12,13 @@ MIT-licensed, LLM-independent publishing engine. LinkedIn is the first supported
 
 [![V2 — Presence Manager development roadmap](docs/assets/edition-v2.svg)](docs/V2-ROADMAP.md)
 
-Keep V1, or choose V2 after its release. Separate authorised accounts can use independent private deployments.
+**V1 remains the production edition. V2 is an unverified alpha preview, not a stable release.**
+
+| New users | Existing V1 users |
+| --- | --- |
+| [**Start with V2 — Alpha Preview**](https://github.com/SalamCircle/postforge-ai/blob/v2-alpha/docs/INSTALL-V2.md) | [**Upgrade to V2 — Rehearsal only**](https://github.com/SalamCircle/postforge-ai/blob/v2-alpha/docs/ALPHA-INSTALL.md) |
+
+Use a disposable private repository for V2 testing. Do not upgrade a live deployment or enable live engagement until verification is complete. Separate authorised accounts can use independent private deployments.
 
 ## Start here — five steps to publish
 
