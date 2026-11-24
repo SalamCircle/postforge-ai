@@ -1,16 +1,22 @@
-# PostForge AI
+# PostForge AI V2 — Alpha
 
-<img src="docs/assets/logo.svg" width="120" alt="PostForge AI logo">
+<img src="docs/assets/logo-v2.svg" width="120" alt="PostForge AI logo">
 
 **Research. Create. Publish.**
 
 MIT-licensed, LLM-independent publishing engine. LinkedIn is the first supported platform. External AI tools supply researched content; GitHub Actions validates, renders and publishes it using the member API.
 
+## V2 developer preview
+
+**2.0.0-alpha.1 — not production-ready.** Existing V1 publishing remains available. V2 adds offline history, queue inspection, draft planning and schedule previews. Live engagement and automatic production upgrades are not yet verified.
+
+[Direct V2 preview setup](docs/ALPHA-INSTALL.md) · [Upgrade rehearsal](docs/ALPHA-INSTALL.md) · [Stable V1](https://github.com/SalamCircle/postforge-ai/tree/main)
+
 ## Choose your experience
 
 [![V1 — Publishing Engine](docs/assets/edition-v1.svg)](#start-here--five-steps-to-publish)
 
-[![V2 — Presence Manager development roadmap](docs/assets/edition-v2.svg)](docs/V2-ROADMAP.md)
+[![V2 — Presence Manager development roadmap](docs/assets/edition-v2.svg)](docs/ALPHA-INSTALL.md)
 
 Keep V1, or choose V2 after its release. Separate authorised accounts can use independent private deployments.
 
