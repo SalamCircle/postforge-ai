@@ -12,6 +12,28 @@ MIT-licensed, LLM-independent publishing engine. LinkedIn is the first supported
 
 [Follow the complete step-by-step visual walkthrough](docs/START-HERE.md).
 
+
+## Publish anytime — your choice of AI
+
+![Visual guide to on-demand and scheduled publishing](docs/assets/publish-anytime.svg)
+
+PostForge AI is free MIT-licensed software, not a bundled AI subscription. Draft with any LLM (ChatGPT, Gemini, Claude, a local model) or write manually. Review the content before saving it. No particular LLM API key is required by the publisher.
+
+**On demand:** in your configured private deployment, create a unique `queue/YYYY-MM-DD-topic.json` file using today's UTC date and commit it to main. This triggers publishing automatically. Alternatively, open Actions → PostForge Publisher → Run workflow on main. The workflow processes today's queue, not future dates.
+
+**Scheduled:** queue a future UTC date. The workflow checks daily at 9 AM UK time (with daylight-saving adjustment); GitHub may delay scheduled runs. For other time zones, adjust both the cron and time guard. Multiple unique posts per day are supported; identical content is blocked by persistent receipts.
+
+Example queue content (replace the date with today's UTC date or your intended future date):
+
+```json
+{
+  "date": "2026-11-24",
+  "text": "Your reviewed LinkedIn post goes here."
+}
+```
+
+Ask your preferred LLM: “Draft a factual LinkedIn post about my chosen topic. Return JSON with date and text, no invented claims, maximum 3000 characters.” Save it to the private queue only after reviewing it. Live publishing requires your own authorized LinkedIn token and explicit LIVE_PUBLISH opt-in. GitHub Actions quotas, LinkedIn API limits and optional AI provider fees apply; check your plan and avoid paid overages. See [Setup](docs/SETUP.md) and [verification](docs/VERIFY.md).
+
 ## Quick start
 Read [Setup](docs/SETUP.md), [LLM prompts](docs/PROMPTS.md) and [Security review](docs/AUDIT.md). Deploy in your own private repository with your own LinkedIn app and secret. Live publishing is disabled by default. Public copies cannot publish using the supplied workflow.
 
