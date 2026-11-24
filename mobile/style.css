@@ -25,3 +25,5 @@ input[type=checkbox]{display:inline-block;width:auto;margin:0 8px 0 0}a{color:#0
 #action-dialog .confirm-form{border:0;margin:0;padding:0}#action-dialog .actions{justify-content:flex-end}#confirm-text{line-height:1.65}
 @keyframes pf-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.action-panel[data-state=pending] .action-indicator{animation:none}}
 @media(max-width:600px){.review-copy{padding:14px}.review-heading{flex-wrap:wrap}.review-badge{max-width:100%}#review-actions button{flex:1 1 44%;white-space:normal}#action-dialog{padding:20px}.action-panel .actions button{white-space:normal}}
+
+.delivery-summary{border:1px solid #dce5ef;border-radius:14px;padding:14px;margin:12px 0;background:#f7f9fc}.delivery-summary h3{margin:0 0 8px}.delivery-summary .approval-item{font-size:14px}.review-badge{max-width:100%;white-space:normal}
