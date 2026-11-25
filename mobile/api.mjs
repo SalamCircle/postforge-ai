@@ -59,9 +59,10 @@ export async function view(files,start=today(),days=30){
 export function sourceImageRequested(item){
   return Boolean(item?.find_images)||/\b(?:actual|real|official|source)\s+image\b/i.test(String(item?.instructions||""));
 }
-export function proImagePreflight(request){
+export function proImagePreflight(request,smartVisual=false){
   const items=request.requests||[request],mode=request.automation||"review";
-  if(mode!=="review"&&items.some(sourceImageRequested))throw Error("Real source images need approval. Select Require approval, or remove the source-image request and use an original graphic for automatic publishing.");
+  if(items.some(i=>i.visual_mode!==undefined&&(!smartVisual||!["smart","original","source-only","text"].includes(i.visual_mode))))throw Error("Install compatible Smart Auto Visual support first, or choose automatic detection.");
+  if(!smartVisual&&mode!=="review"&&items.some(sourceImageRequested))throw Error("Real source images need approval. Select Require approval, or remove the source-image request and use an original graphic for automatic publishing.");
 }
 export class Client{
   #token; #base; #branch; #fetch; #assets=new Map(); head=null; writable=false; compatibility=null;
@@ -123,7 +124,8 @@ export class Client{
     const automation=pro&&(await this.readBlob(entries.get(".github/workflows/pro-ai.yml"),30000)).includes("RESEARCH AND PUBLISH");
     const deletion=compatible&&(await this.readBlob(entries.get("scripts/mobile_action.py"),30000)).includes('"delete-many"');
     const recovery=pro&&regular("scripts/pro_recovery.py");
-    return {version,pro,sourceImages,delivery,timedChecks,automation,deletion,recovery,edition:pro?"V2 Pro":compatible?"V2":v2?"V2 Alpha":"V1 Publishing Engine",core:compatible,upgrade:!compatible,branch:this.#branch};
+    const smartVisual=pro&&regular("scripts/smart_visual.py");
+    return {version,pro,sourceImages,delivery,timedChecks,automation,deletion,recovery,smartVisual,edition:pro?"V2 Pro":compatible?"V2":v2?"V2 Alpha":"V1 Publishing Engine",core:compatible,upgrade:!compatible,branch:this.#branch};
   }
   async snapshot(){
     this.head=null;this.writable=false;this.compatibility=null;this.#assets.clear();
@@ -149,7 +151,7 @@ export class Client{
     return this.request("/actions/workflows/mobile-studio.yml/dispatches",{ref:"main",inputs:{payload,confirmation:"APPLY REVIEWED ACTION"}});
   }
   async generateDraft(request){
-    proImagePreflight(request);
+    proImagePreflight(request,this.compatibility?.smartVisual);
     if(!this.writable||!this.compatibility?.pro||!ID.test(this.head))throw Error("Install and configure V2 Pro on private main first.");
     const mode=request.automation||"review", confirmations={review:"GENERATE DRAFT ONLY",queue:"RESEARCH AND QUEUE",publish:"RESEARCH AND PUBLISH"};
     if(!Object.hasOwn(confirmations,mode)||(mode!=="review"&&!this.compatibility.automation))throw Error("Install compatible automation support first.");
