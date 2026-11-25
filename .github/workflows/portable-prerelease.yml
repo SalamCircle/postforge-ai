@@ -1,0 +1,65 @@
+name: Publish portable Pro prerelease
+on:
+  push:
+    branches: [v2-pro-portable]
+    paths: ['docs/portable-release.json']
+permissions:
+  contents: read
+concurrency:
+  group: portable-pro-prerelease
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.repository == 'SalamCircle/postforge-ai' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      LIVE_PUBLISH: 'false'
+      TIMED_PUBLISH: 'false'
+      PRO_AI_ENABLED: 'false'
+      LINKEDIN_ACCESS_TOKEN: ''
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify clean distributable tree
+        run: |
+          python3 - <<'PY'
+          import subprocess, json
+          from pathlib import Path
+          from scripts.portable_install import FILES
+          paths=subprocess.check_output(["git","ls-files"],text=True).splitlines()
+          assert all(p in ("queue/README.md","state/README.md") for p in paths if p.startswith(("queue/","state/","studio/","scheduled/","launch/")))
+          assert all(Path(p).is_file() and not Path(p).is_symlink() for p in FILES)
+          assert not any(p in paths for p in (".postforge-v2.json",".github/workflows/public-launch.yml",".env"))
+          assert json.loads(Path("docs/portable-release.json").read_text())=={"tag":"v2.0.0-rc.1","prerelease":True}
+          PY
+      - run: python3 -m pip install -r requirements.txt pip-audit bandit
+      - run: python3 -m unittest discover -s tests -v
+      - run: node --test tests/test_mobile_api.mjs tests/test_mobile_vault.mjs
+      - run: python3 -m pip_audit -r requirements.txt --strict
+      - run: python3 -m bandit -r scripts -ll
+      - name: Browser acceptance
+        run: |
+          python3 -m pip install playwright==1.56.0
+          if ! command -v google-chrome >/dev/null && ! command -v chromium >/dev/null; then
+            python3 -m playwright install chromium
+          fi
+          python3 tests/mobile_browser_smoke.py
+  release:
+    needs: verify
+    if: github.repository == 'SalamCircle/postforge-ai' && github.event.repository.private == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: write
+    steps:
+      - name: Create prerelease once
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view v2.0.0-rc.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'Prerelease already exists; refusing overwrite.'
+            exit 1
+          fi
+          gh release create v2.0.0-rc.1 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease --title "PostForge AI V2 Pro — portable release candidate 1" --notes "Clean portable source, V1/Core/Pro capabilities, reviewed plan/apply migration and optional GitHub Actions migration template. Automated tests, dependency and security scans and browser smoke passed. Real provider setup, live publication and remote migration token acceptance remain deployment-specific. No private data or credentials included."

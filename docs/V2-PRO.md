@@ -62,13 +62,13 @@ Sign in or create your own GroqCloud account. Confirm no payment method, paid pl
 
 ## Step 5 — Save the Groq secret in GitHub
 
-[![Open actual new repository secret form (instructions for your own private repository)](assets/pro-groq-secret.svg)](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
+[![Open official secret creation instructions](assets/pro-groq-secret.svg)](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
 
-[**Open actual new repository secret form (instructions for your own private repository) →**](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
+[**Open official secret creation instructions →**](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
 
 In YOUR private repository: Settings → Secrets and variables → Actions → Secrets → New repository secret. Name: `GROQ_API_KEY`. Secret: paste your own Groq key. Select Add secret.
 
-The direct GitHub settings links in this guide are for the official instructions; use your own repository's Settings pages. For your own repository use its URL followed by `/settings/secrets/actions/new`. Never place your keys in another person's repository, source code, screenshots or chat.
+GitHub help links explain the process. The actual settings URL depends on your private repository. For your own repository use its URL followed by `/settings/secrets/actions/new`. Never place your keys in another person's repository, source code, screenshots or chat.
 
 ## Step 6 — Create your Tavily key (web research)
 
@@ -80,17 +80,17 @@ Sign in or create your own eligible free account. Verify the current free allowa
 
 ## Step 7 — Save the Tavily secret in GitHub
 
-[![Open actual new repository secret form (instructions for your own private repository)](assets/pro-tavily-secret.svg)](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
+[![Open official secret creation instructions](assets/pro-tavily-secret.svg)](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
 
-[**Open actual new repository secret form (instructions for your own private repository) →**](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
+[**Open official secret creation instructions →**](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
 
 Repeat the private repository secret setup with name `TAVILY_API_KEY` and your own Tavily key. Select Add secret. The LinkedIn secret remains unchanged.
 
 ## Step 8 — Set the AI model variable
 
-[![Open actual Actions variables page (instructions for your own private repository)](assets/pro-model-variable.svg)](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables)
+[![Open official variable creation instructions](assets/pro-model-variable.svg)](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables)
 
-[**Open actual Actions variables page (instructions for your own private repository) →**](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables)
+[**Open official variable creation instructions →**](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables)
 
 In YOUR private repository, Settings → Secrets and variables → Actions → Variables → New repository variable. Name: `PRO_AI_MODEL`. Value: a supported exact model ID in your [Groq model list](https://console.groq.com/docs/models) that is available to your free account. The current workflow default is `openai/gpt-oss-20b`; it is an example, not a guarantee of eligibility. Keep `PRO_AI_ENABLED` unset while preparing and testing.
 
@@ -102,9 +102,9 @@ Check your [GitHub billing and included usage](https://github.com/settings/billi
 
 ## Step 10 — Enable Pro after passing verification
 
-[![Open actual Actions variables page (instructions for your own private repository)](assets/pro-enable-variable.svg)](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables)
+[![Open official variable creation instructions](assets/pro-enable-variable.svg)](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables)
 
-[**Open actual Actions variables page (instructions for your own private repository) →**](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables)
+[**Open official variable creation instructions →**](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables)
 
 Create the repository variable `PRO_AI_ENABLED` with value `true` after successful verification and confirmed free-only configuration. Existing working Pro installations do not need to reset their settings. Refresh your workspace and verify the Pro edition and Research & AI panel.
 

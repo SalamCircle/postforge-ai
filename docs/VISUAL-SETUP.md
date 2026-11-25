@@ -48,7 +48,7 @@ Use the OAuth token generator. Sign in to the intended LinkedIn member account a
 
 [Open official Actions secrets instructions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
 
-For your own deployment, open your private repository and append `/settings/secrets/actions/new` to its URL. The direct link above requires access to this example workspace; never enter your credentials in another person's repository. [Official GitHub guide](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets).
+For your own deployment, open your private repository and append `/settings/secrets/actions/new` to its URL. The official link above is a help page, not your private settings; never enter your credentials in another person's repository. [Official GitHub guide](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets).
 
 Save the secret directly in GitHub. Do not put it in a file, repository variable, screenshot or chat. Leave LIVE_PUBLISH unset for testing. Check [billing](https://github.com/settings/billing) before running jobs.
 

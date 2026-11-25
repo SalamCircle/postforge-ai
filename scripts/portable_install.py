@@ -110,6 +110,8 @@ FILES = tuple([
   "docs/assets/setup-detail-08.svg",
   "docs/assets/pro-setup-flow.svg",
   "docs/assets/portable-migration.svg",
+  "docs/assets/portable-workflow.svg",
+  "docs/portable-migration.yml",
   "docs/CONTENT-STUDIO.md",
   "docs/V2-PRO.md",
   "docs/VISUAL-SETUP.md",

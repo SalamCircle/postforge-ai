@@ -20,7 +20,7 @@ Use a reviewed complete Core distribution in a fresh private repository. The pub
 
 <p align="center"><a href="#upgrade-v1-to-v2"><img src="assets/upgrade-v1-v2.svg" width="520" alt="Upgrade V1 to V2"></a></p>
 
-The historical Alpha upgrade workflow installs the historical Alpha package only, from a pinned commit on the private development branch. It is not a full Core or Pro migration and is not portable to arbitrary new repositories. Do not run it on installed V2/Pro. For a V1 migration, back up the same-account deployment, pause all writers and disable live publishing, reconcile unresolved claims, test on a private rehearsal copy, and use a reviewed full Core migration package when available. Preserve queue, state and credentials; never run both live publishers for the same account. [Versioning safeguards](VERSIONING.md).
+The historical Alpha upgrade workflow installs the historical Alpha package only, from a pinned commit on the private development branch. It is not a full Core or Pro migration and is not portable to arbitrary new repositories. Do not run it on installed V2/Pro. For a V1 migration, back up the same-account deployment, pause all writers and disable live publishing, reconcile unresolved claims, test on a private rehearsal copy, and use the [reviewed portable Pro candidate including Core](PORTABLE-INSTALL.md) if you want the full Pro backend. Preserve queue, state and credentials; never run both live publishers for the same account. [Versioning safeguards](VERSIONING.md).
 
 ## Start with V2 Pro
 
@@ -48,4 +48,4 @@ For maintainers: deploy only the clean public frontend branch mobile-preview fro
 
 [Hosted app](https://salamcircle.github.io/postforge-ai/mobile/) · [Connection and permissions](MOBILE.md) · [Visual setup](VISUAL-SETUP.md)
 
-All illustrations are recreated examples, not authenticated live screenshots. Private example Actions links require access; use equivalent paths in your own repository. Public full Core/Pro distributions and automated migration require separate release acceptance.
+All illustrations are recreated examples, not authenticated live screenshots. Private example Actions links require access; use equivalent paths in your own repository. The [portable Pro candidate](PORTABLE-INSTALL.md) is available for reviewed installation and migration; repository-specific live acceptance remains required.

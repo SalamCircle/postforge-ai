@@ -4,7 +4,7 @@
 
 <p align="center"><a href="#step-1-complete-the-v1-foundation"><img src="assets/edition-v2.svg" width="520" alt="V2 includes all V1 features plus web app controls"></a></p>
 
-> **Installation requirement:** V2 Core is installed in the maintained private workspace. For a new user, obtain a reviewed complete Core distribution before starting; the current public V1 source and historical Alpha upgrade alone do not install Core. Use the Pro portable release candidate (with Core included) only after reviewing its acceptance results. Do not copy another person's private repository or its data. Existing compatible installations can use the steps below now.
+> **Installation requirement:** V2 Core is installed in the maintained private workspace. For a new user, obtain a reviewed complete Core distribution before starting; the current public V1 source and historical Alpha upgrade alone do not install Core. Use the [portable Pro candidate (with Core included)](PORTABLE-INSTALL.md) after reviewing its acceptance results. Do not copy another person's private repository or its data. Existing compatible installations can use the steps below now.
 
 ## Step 1 — Complete the V1 foundation
 
