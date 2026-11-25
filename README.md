@@ -30,6 +30,10 @@ The hosted dashboard is already available; self-hosting is optional. To host you
 
 Use ordinary ChatGPT with authorized repository access. No OpenAI API key is required by the publishing engine. Write access and availability vary; read-only users can import drafts. Optional Groq, Tavily and Workers AI require their own supported configuration and quotas.
 
+## Original impact graphics
+
+Create topic-specific graphics with central illustrated artwork, luminous connected cards and two to six readable labels. The local renderer needs no image API; existing editorial graphics remain compatible. Optional AI artwork still requires its explicitly configured provider. See [visual setup](docs/UNIFIED-AUTOMATION.md#impact-graphics-no-image-api).
+
 ## Security and activation
 
 Keep the publishing repository private. Use your own LinkedIn developer application, scoped GitHub tokens and Actions secrets. Keep live publishing, timed publishing and integrated AI disabled until you verify the exact account, configuration and intended content. Never add payment details just to bypass limits.

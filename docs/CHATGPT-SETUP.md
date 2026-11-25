@@ -39,7 +39,7 @@ Continue the authorized PostForge AI GitHub write test. Repository: [PRIVATE OWN
 Choose Prepare draft only and copy the prompt. Import the returned JSON into PostForge, review and publish only when ready.
 
 ```text
-Act as my PostForge AI content assistant for [PRIVATE OWNER/REPO]. Research one current AI or cybersecurity topic (or my requested topic) using reliable primary sources. Create a professional LinkedIn post with verified source URLs and an optional original graphic brief without PostForge branding or promotional signatures. Return ONLY an import-ready JSON array with one object containing id (unique lowercase letters/digits/hyphens, max 48 characters), date (YYYY-MM-DD UTC), title (max 120), topic (max 100), text (max 3000), sources (up to 12 verified HTTPS URLs), and optional visual {title (max 70), points (2–4 strings, max 80 each)}. Use actual values, not placeholders. Do not create files, queue, publish, request credentials or use paid APIs. I will import and review the draft in PostForge AI.
+Act as my PostForge AI content assistant for [PRIVATE OWNER/REPO]. Research one current AI or cybersecurity topic (or my requested topic) using reliable primary sources. Create a professional LinkedIn post with verified source URLs and an optional original graphic brief without PostForge branding or promotional signatures. Return ONLY an import-ready JSON array with one object containing id (unique lowercase letters/digits/hyphens, max 48 characters), date (YYYY-MM-DD UTC), title (max 120), topic (max 100), text (max 3000), sources (up to 12 verified HTTPS URLs), and optional visual {title (max 70), points (2–4 strings, max 80 each), layout: "impact", labels (2–6 short names or phrases grounded in the post, max 80 each)}. Use actual values, not placeholders. Do not create files, queue, publish, request credentials or use paid APIs. I will import and review the draft in PostForge AI.
 ```
 
 ## 5. Direct publishing — explicit opt-in
@@ -61,7 +61,7 @@ Step 1 — Verify capabilities
 Check whether your GitHub connection supports reading and creating files. Verify that the repository is private and main is the default branch. Read .github/workflows/publish.yml and scripts/publish.py. If only read access exists, stop and explain; offer an import-ready draft instead.
 
 Step 2 — Research and create
-Research one current, factual AI or cybersecurity development using reliable primary sources (or a topic I explicitly specify). Write a professional original LinkedIn post with verified source links, maximum 3000 characters. Create an original graphic specification containing a title (maximum 70 characters) and 2–4 short points (maximum 80 characters each). Do not add PostForge AI branding, watermarks or promotional signatures. Check the actual renderer; if it would add unwanted branding, stop and offer text-only or reviewed alternatives.
+Research one current, factual AI or cybersecurity development using reliable primary sources (or a topic I explicitly specify). Write a professional original LinkedIn post with verified source links, maximum 3000 characters. Create an original graphic specification containing a title (maximum 70 characters), 2–4 short points (maximum 80 characters each), layout: "impact", and 2–6 optional labels naming only tools or ideas supported by the post. Do not add PostForge AI branding, watermarks or promotional signatures. Check the actual renderer; if it would add unwanted branding, stop and offer text-only or reviewed alternatives.
 
 Step 3 — Safety checks
 Inspect the complete current UTC day's queue and publication receipts in state/. Compute the exact fingerprint using the current publisher's algorithm and ensure no duplicate exists. Ensure there are no unresolved claims, conflicting files or other due unpublished posts that could be unintentionally published. Refresh main immediately before writing. Stop if these checks cannot be completed reliably, or if live configuration or intended LinkedIn account cannot be confirmed. Never change settings to enable live mode.
@@ -76,7 +76,7 @@ Create exactly one new JSON file in the queue directory on main. Use the current
     "points": ["First key insight", "Second key insight", "Third key insight"]
   }
 }
-Replace all placeholders with actual researched content. Use the authorized create-only GitHub action, never overwrite. The existing PostForge Publisher workflow automatically runs when a queue JSON file is pushed.
+Replace all placeholders with actual researched content. If the renderer supports impact layout, add `layout: "impact"` and 2–6 grounded labels to the visual object. Use the authorized create-only GitHub action, never overwrite. The existing PostForge Publisher workflow automatically runs when a queue JSON file is pushed.
 
 This request explicitly authorizes one real LinkedIn publication to my configured account. No additional editorial approval is required from me. Respect any mandatory platform confirmation.
 

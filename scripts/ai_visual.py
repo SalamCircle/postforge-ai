@@ -16,8 +16,8 @@ MODES={"ai-photo","ai-illustration","ai-poster"}
 ACK="DEDICATED_WORKERS_FREE_NO_PAYMENT_METHOD"
 STYLES={
     "ai-photo":"Photorealistic conceptual editorial photography, natural studio light, premium commercial composition.",
-    "ai-illustration":"Sophisticated editorial digital illustration, clear visual metaphor, balanced depth and restrained colours.",
-    "ai-poster":"Premium editorial poster artwork, dramatic composition, generous clean negative space, strong visual hierarchy."
+    "ai-illustration":"Sophisticated editorial digital illustration, distinctive central visual metaphor, luminous detail, layered depth and a premium topic-specific palette.",
+    "ai-poster":"Premium editorial poster artwork, luminous technical circuitry, layered dimensional forms, dramatic central metaphor, carefully balanced peripheral shapes and strong visual hierarchy."
 }
 MAX_RESPONSE=7_000_000
 
