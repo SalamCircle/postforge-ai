@@ -161,7 +161,7 @@ export class Client{
     const recovery=pro&&regular("scripts/pro_recovery.py");
     const smartVisual=pro&&regular("scripts/smart_visual.py");
     const aiVisual=smartVisual&&regular("scripts/ai_visual.py");
-    return {version,pro,sourceImages,delivery,timedChecks,automation,deletion,recovery,smartVisual,aiVisual,configurationCheck:regular(".github/workflows/configuration-check.yml"),unifiedGuide:regular("docs/UNIFIED-SETUP.md"),edition:pro?"V2 Pro":compatible?"V2":v2?"V2 Alpha":"V1 Publishing Engine",core:compatible,upgrade:!compatible,branch:this.#branch};
+    return {version,pro,sourceImages,delivery,timedChecks,automation,deletion,recovery,smartVisual,aiVisual,configurationCheck:regular(".github/workflows/configuration-check.yml"),unifiedGuide:regular("docs/UNIFIED-SETUP.md"),visualSetupParts:["docs/UNIFIED-HOSTING.md","docs/UNIFIED-FOUNDATION.md","docs/UNIFIED-CHATGPT.md","docs/UNIFIED-WORKSPACE.md","docs/UNIFIED-AUTOMATION.md","docs/UNIFIED-SUPPORT.md"].every(regular),edition:pro?"V2 Pro":compatible?"V2":v2?"V2 Alpha":"V1 Publishing Engine",core:compatible,upgrade:!compatible,branch:this.#branch};
   }
   async snapshot(){
     this.head=null;this.writable=false;this.compatibility=null;this.#assets.clear();
