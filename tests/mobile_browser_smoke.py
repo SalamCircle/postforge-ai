@@ -259,6 +259,11 @@ def main():
             form.locator('[name="title"]').fill("Timed example")
             form.locator('[name="topic"]').fill("AI")
             form.locator('[name="text"]').fill("Draft with a requested time")
+            form.locator('[name="visual_title"]').fill("AI research tools")
+            form.locator('[name="visual_points"]').fill("Review evidence\nCheck sources")
+            form.locator('[name="visual_layout"]').select_option("impact")
+            form.locator('[name="visual_labels"]').fill("Research\nVerification\nReview")
+            expect(page.locator("#compose-preview .impact-preview-card")).to_have_count(3)
             expect(page.locator("#draft-timing-preview")).to_contain_text("2030-07-01 08:30 UTC")
             form.get_by_role("button",name="Save draft only").click()
             confirm()
@@ -266,6 +271,8 @@ def main():
             assert dispatched[-1]["action"] == "draft"
             assert dispatched[-1]["draft"]["scheduled_at"] == "2030-07-01T08:30:00+00:00"
             assert dispatched[-1]["draft"]["date"] == "2030-07-01"
+            assert dispatched[-1]["draft"]["visual"]["layout"] == "impact"
+            assert dispatched[-1]["draft"]["visual"]["labels"] == ["Research","Verification","Review"]
             page.locator("#check-run").click()
             expect(page.locator("#notice")).to_contain_text("GitHub reports success")
             if not any(method=="POST" and path.endswith("/dispatches") for method,path in calls):

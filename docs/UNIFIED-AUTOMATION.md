@@ -57,3 +57,6 @@ This manual check reports missing, disabled or configured integrations without p
 [![Open recovery and support](assets/unified-nav-support.svg)](UNIFIED-SUPPORT.md)
 
 [![Return to complete setup](assets/unified-nav-home.svg)](UNIFIED-SETUP.md)
+## Impact graphics (no image API)
+
+Original and Smart fallback graphics now use a topic-specific central illustration, connected cards, luminous accents and readable labels derived from the draft. No external artwork or logo is fetched. The draft editor offers Editorial and Impact layouts; optional labels contain two to six names or short phrases already supported by the post. The preview is illustrative; the final deterministic 1200 × 1200 PNG is rendered by the publishing engine. Existing graphics without a layout retain the original editorial renderer. Optional AI artwork remains separate and disabled unless configured.
