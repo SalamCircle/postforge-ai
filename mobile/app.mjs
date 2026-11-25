@@ -96,7 +96,26 @@ function renderDelivery(){const el=$("delivery-info");el.replaceChildren();const
 function renderDelete(){const section=$("bulk-delete"),list=$("delete-list");section.hidden=!client?.compatibility?.deletion;list.replaceChildren();for(const r of data.drafts.filter(r=>["draft","approved","archived"].includes(r.status))){const label=node("label",undefined,"delete-row"),input=document.createElement("input");input.type="checkbox";input.value=r.draft.id;input.disabled=!canWrite();label.append(input,node("span",r.draft.title));list.append(label);} $("delete-selected").disabled=!canWrite();}
 $("delete-selected").addEventListener("click",()=>{const items=[...$("delete-list").querySelectorAll("input:checked")].map(e=>data.drafts.find(r=>r.draft.id===e.value)).filter(Boolean).map(r=>({id:r.draft.id,digest:r.digest}));if(!items.length){note("Select at least one draft.",true);return;}void run({action:"delete-many",items,confirmation:"DELETE DRAFTS"},"Drafts removed");});
 function render(){renderRecovery();renderApproval();renderDelete();renderDelivery();const r=data.calendar;$("metrics").replaceChildren();for(const [label,count] of [["Planned",r.length],["Awaiting review",r.filter(x=>x.status==="draft").length],["Published",r.filter(x=>x.status==="published").length]]){const box=node("div",undefined,"metric");box.append(node("small",label),node("strong",count));$("metrics").append(box);}calendar();$("draft-list").replaceChildren();for(const item of data.drafts){const line=node("div",undefined,"row"), info=node("div",undefined,"rowbody"), button=node("button","Review","secondary");info.append(node("strong",item.draft.title),node("small",item.draft.date+(item.draft.scheduled_at?" · "+item.draft.scheduled_at.slice(11,16)+" UTC":"")+" · "+item.status));button.addEventListener("click",()=>review(item.draft.id));line.append(info,button);$("draft-list").append(line);}if(!data.drafts.length)$("draft-list").append(node("p","No drafts yet. Create one or import an AI plan."));$("brief").textContent=json(data.brief);$("health-data").textContent=json(data.health);if(selected)review(selected,false);}
-function calendar(){if(!data)return;const rows=$("calendar-rows");rows.replaceChildren();const filter=$("filter").value,q=$("search").value.toLowerCase();for(const item of data.calendar.filter(x=>(!filter||x.status===filter)&&[x.title,x.topic,x.series].join(" ").toLowerCase().includes(q))){const row=node("div",undefined,"row"), info=node("div",undefined,"rowbody");const title=node("button",item.title,"post-title-button");title.type="button";title.addEventListener("click",()=>openPost(item.id));info.append(title,node("small",[item.topic,item.series,item.scheduled_at].filter(Boolean).join(" · ")),node("span",deliveryLabel(item),"status "+item.status));row.append(node("div",item.date.slice(5),"date"),info);if(data.drafts.some(d=>d.draft.id===item.id)){const b=node("button","Review","secondary");b.addEventListener("click",()=>review(item.id));row.append(b);}rows.append(row);}if(!rows.children.length)rows.append(node("p","No content matches this view."));}
+let weekOffset=0,calendarDay="",calendarWindow="";
+function renderWeek(){
+ const start=$("start").value||new Date().toISOString().slice(0,10),days=Number($("days").value),key=start+"/"+days;
+ if(key!==calendarWindow){calendarWindow=key;weekOffset=0;calendarDay="";}
+ const dateAt=i=>new Date(Date.parse(start+"T00:00:00Z")+i*86400000);
+ const fmt=new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric",timeZone:"UTC"});
+ const weekday=new Intl.DateTimeFormat(undefined,{weekday:"short",timeZone:"UTC"});
+ $("week-label").textContent=fmt.format(dateAt(weekOffset))+" – "+fmt.format(dateAt(Math.min(days-1,weekOffset+6)))+" (UTC)";
+ $("week-prev").disabled=weekOffset===0;$("week-next").disabled=weekOffset+7>=days;
+ $("week-all").setAttribute("aria-pressed",String(!calendarDay));$("week-filter").textContent=calendarDay?"Showing "+calendarDay:"Showing all dates in window";
+ const list=$("week-days");list.replaceChildren();
+ for(let i=weekOffset;i<Math.min(days,weekOffset+7);i++){
+  const date=dateAt(i),day=date.toISOString().slice(0,10),count=data.calendar.filter(r=>r.date===day).length;
+  const b=node("button",undefined,"calendar-day");b.type="button";b.dataset.date=day;b.setAttribute("aria-pressed",String(calendarDay===day));b.setAttribute("aria-label",day+", "+count+" posts");b.append(node("small",weekday.format(date)),node("strong",String(date.getUTCDate())),node("small",count?String(count)+" post"+(count===1?"":"s"):"—"));b.addEventListener("click",()=>{calendarDay=calendarDay===day?"":day;calendar();});list.append(b);
+ }
+}
+$("week-prev").addEventListener("click",()=>{weekOffset=Math.max(0,weekOffset-7);calendarDay="";calendar();});
+$("week-next").addEventListener("click",()=>{weekOffset+=7;calendarDay="";calendar();});
+$("week-all").addEventListener("click",()=>{calendarDay="";calendar();});
+function calendar(){if(!data)return;renderWeek();const rows=$("calendar-rows");rows.replaceChildren();const filter=$("filter").value,q=$("search").value.toLowerCase();for(const item of data.calendar.filter(x=>(!calendarDay||x.date===calendarDay)&&(!filter||x.status===filter)&&[x.title,x.topic,x.series].join(" ").toLowerCase().includes(q))){const row=node("div",undefined,"row"), info=node("div",undefined,"rowbody");const title=node("button",item.title,"post-title-button");title.type="button";title.addEventListener("click",()=>openPost(item.id));info.append(title,node("small",[item.topic,item.series,item.scheduled_at].filter(Boolean).join(" · ")),node("span",deliveryLabel(item),"status "+item.status));row.append(node("div",item.date.slice(5),"date"),info);if(data.drafts.some(d=>d.draft.id===item.id)){const b=node("button","Review","secondary");b.addEventListener("click",()=>review(item.id));row.append(b);}rows.append(row);}if(!rows.children.length)rows.append(node("p","No content matches this view."));}
 let openPostId=null;
 function openPost(id){const post=data?.posts?.[id];if(!post)return;openPostId=id;$("post-title").textContent=post.title;$("post-meta").textContent=post.date+" · "+post.status+" · "+post.source;$("post-text").textContent=post.text===null?"Full text is not retained in this repository. Use the LinkedIn link if available.":post.text;$("post-visual").textContent=post.visual?["Visual: "+(post.visual.title||""),...(Array.isArray(post.visual.points)?post.visual.points:[])].join(" • "):"";$("copy-post").disabled=post.text===null;$("post-copy-status").textContent="";const link=$("linkedin-post");link.hidden=!(typeof post.post_id==="string"&&/^urn:li:(?:share|ugcPost|activity):[0-9]+$/.test(post.post_id));link.removeAttribute("href");if(!link.hidden)link.href="https://www.linkedin.com/feed/update/"+encodeURIComponent(post.post_id)+"/";if(!$("post-dialog").open)$("post-dialog").showModal();}
 $("close-post").addEventListener("click",()=>$("post-dialog").close());
@@ -164,6 +183,27 @@ function renderRecovery(){
   const link=node("a","Workflow details");link.href="https://github.com/"+repoName.split("/").map(encodeURIComponent).join("/")+"/actions/runs/"+r.run_id;link.target="_blank";link.rel="noopener noreferrer";actions.append(link);item.append(actions);list.append(item);
  }
 }
+const PREFERENCES="postforge.mobile.pro-preferences.v1";
+function applyPreferences(){
+ const c=client?.compatibility,f=$("pro-form");$("pro-preferences").hidden=!c?.pro;
+ f.elements.automation.value="review";f.elements.visual_mode.value="";
+ try{
+  const p=JSON.parse(localStorage.getItem(PREFERENCES)||"null");
+  if(p&&p.version===1){
+   if(c?.automation&&["review","queue","publish"].includes(p.automation))f.elements.automation.value=p.automation;
+   if(c?.smartVisual&&["","smart","original","source-only","text",...(c.aiVisual?["ai-photo","ai-illustration","ai-poster"]:[])].includes(p.visual))f.elements.visual_mode.value=p.visual;
+   $("pro-preference-status").textContent="Saved device defaults loaded. Confirm each request before submission.";
+  }else $("pro-preference-status").textContent="Using safe defaults.";
+ }catch{$("pro-preference-status").textContent="Device preferences unavailable; using safe defaults.";}
+ f.elements.automation.dispatchEvent(new Event("change"));
+}
+$("save-pro-preferences").addEventListener("click",async()=>{
+ if(!client?.compatibility?.pro)return;
+ const active=client,f=$("pro-form"),automation=proMode(),visual=client.compatibility.smartVisual?f.elements.visual_mode.value:"";
+ if(!await confirmAction("Save device defaults","Remember these selections on this browser. They do not authorize or schedule any publication. Confirm each request separately.","Save defaults")||client!==active)return;
+ try{localStorage.setItem(PREFERENCES,JSON.stringify({version:1,automation,visual}));$("pro-preference-status").textContent="Defaults saved on this device.";}catch{$("pro-preference-status").textContent="Device storage is unavailable.";}
+});
+$("reset-pro-preferences").addEventListener("click",()=>{try{localStorage.removeItem(PREFERENCES);}catch{$("pro-preference-status").textContent="Could not clear device storage.";return;}applyPreferences();});
 const proMode=()=>client?.compatibility?.automation?$("pro-form").elements.automation.value:"review";
 $("pro-form").elements.automation.addEventListener("change",()=>{$("pro-image-warning").hidden=true;const mode=proMode();$("automation-help").textContent=mode==="publish"?"Publishes one post today without further approval. Leave publication time blank.":mode==="queue"?"Automatically queues posts at their selected future times. Delivery is best effort.":"Save drafts for review. No post is published.";});
 function proRequest(){const f=new FormData($("pro-form"));const request={topic:String(f.get("topic")).trim(),instructions:String(f.get("instructions")).trim(),domains:String(f.get("domains")||"").split(",").map(x=>x.trim().toLowerCase()).filter(Boolean),use_brand:f.get("use_brand")==="on",find_images:f.get("find_images")==="on",...draftTiming(f.get("date"),f.get("time"),String(f.get("zone")).trim())};if(client?.compatibility?.automation&&f.get("add_visual")==="on")request.add_visual=true;const ref=String(f.get("reference_id")||"").trim();if(ref)request.reference_id=ref;if(client?.compatibility?.smartVisual){const choice=String(f.get("visual_mode")||"");const real=sourceImageRequested(request);if(choice)request.visual_mode=choice;else if(real)request.visual_mode="smart";else if(request.add_visual)request.visual_mode="original";delete request.add_visual;request.find_images=false;return request;}if(sourceImageRequested(request))request.find_images=true;if(request.find_images&&!request.domains.length){$("pro-image-warning").textContent="Enter official source domains to find real source images, or request an original generated graphic instead.";$("pro-image-warning").hidden=false;throw Error("Enter official source domains for image discovery.");}return request;}
@@ -180,7 +220,7 @@ function showVault(){try{$("unlock-panel").hidden=!localStorage.getItem(VAULT);}
 $("remember").addEventListener("change",()=>{$("vault-fields").hidden=!$("remember").checked;for(const id of ["vault-pass","vault-repeat"])$(id).required=$("remember").checked;});
 $("enable-write").addEventListener("change",()=>{if($("enable-write").checked){$("remember").checked=false;$("remember").dispatchEvent(new Event("change"));}$("remember").disabled=$("enable-write").checked;$("direct-duration-field").hidden=!$("enable-write").checked;});
 async function connect(credential,write=false){
- proPlan=[];$("pro-form").elements.automation.value="review";$("automation-help").textContent="Save drafts for review. No post is published.";clearImagePreview();stopActionPoll();if(repoName&&repoName!==credential.repo){pending=null;pendingMeta=null;$("action-panel").hidden=true;}repoName=credential.repo;writeEnabled=write;client=new Client(repoName,credential.token,credential.branch);readClient=write?null:client;if(write)startEditClock(editDeadline(Number($("direct-duration").value)));await load();fillBrand();$("connect-panel").hidden=true;$("connection").hidden=false;$("workspace").hidden=false;connectionStatus();$("runs-link").href="https://github.com/"+repoName.split("/").map(encodeURIComponent).join("/")+"/actions/workflows/mobile-studio.yml";note("Connected to recognised PostForge installation. Data stays in your private repository.");
+ proPlan=[];$("pro-form").elements.automation.value="review";$("automation-help").textContent="Save drafts for review. No post is published.";clearImagePreview();stopActionPoll();if(repoName&&repoName!==credential.repo){pending=null;pendingMeta=null;$("action-panel").hidden=true;}repoName=credential.repo;writeEnabled=write;client=new Client(repoName,credential.token,credential.branch);readClient=write?null:client;if(write)startEditClock(editDeadline(Number($("direct-duration").value)));await load();fillBrand();$("connect-panel").hidden=true;$("connection").hidden=false;$("workspace").hidden=false;connectionStatus();applyPreferences();$("runs-link").href="https://github.com/"+repoName.split("/").map(encodeURIComponent).join("/")+"/actions/workflows/mobile-studio.yml";note("Connected to recognised PostForge installation. Data stays in your private repository.");
 }
 function failed(err){proPlan=[];clearImagePreview();clearTimeout(editTimer);editUntil=0;writeEnabled=false;client=null;readClient=null;data=null;$("workspace").hidden=true;$("connection").hidden=true;$("connect-panel").hidden=false;note(err.message,true);}
 $("connect-form").addEventListener("submit",async e=>{e.preventDefault();if(busy)return;busy=true;const credential={repo:$("repo").value.trim(),token:$("access").value.trim(),branch:$("branch").value};const remember=$("remember").checked,write=$("enable-write").checked,password=$("vault-pass").value,repeat=$("vault-repeat").value;
@@ -188,7 +228,7 @@ $("connect-form").addEventListener("submit",async e=>{e.preventDefault();if(busy
  try{if(remember&&(write||password!==repeat||password.length<12))throw Error("Use a matching separate passphrase of at least 12 characters and read-only access.");await connect(credential,write);if(remember){try{localStorage.setItem(VAULT,await seal(credential,password));showVault();note("Connected. Encrypted device unlock saved; use Disconnect to lock.");}catch{note("Connected, but the encrypted connection could not be saved.",true);}}}catch(err){failed(err);}finally{busy=false;}
 });
 $("unlock-form").addEventListener("submit",async e=>{e.preventDefault();if(busy)return;busy=true;const password=$("unlock-pass").value;$("unlock-pass").value="";try{const credential=await unseal(localStorage.getItem(VAULT),password);await connect(credential,false);}catch(err){failed(err);}finally{busy=false;}});
-$("forget").addEventListener("click",async()=>{if(await confirmAction("Forget saved connection","Remove both encrypted authorizations from this device. Revoke their tokens in GitHub if needed.","Forget")){try{localStorage.removeItem(VAULT);localStorage.removeItem(EDIT_VAULT);showVault();note("Saved connection removed from this browser. Revoke its token in GitHub if needed.");}catch{note("Unable to clear browser storage.",true);}}});
+$("forget").addEventListener("click",async()=>{if(await confirmAction("Forget saved connection","Remove both encrypted authorizations from this device. Revoke their tokens in GitHub if needed.","Forget")){try{localStorage.removeItem(VAULT);localStorage.removeItem(EDIT_VAULT);localStorage.removeItem(PREFERENCES);showVault();note("Saved connection removed from this browser. Revoke its token in GitHub if needed.");}catch{note("Unable to clear browser storage.",true);}}});
 showVault();
 async function checkAction(){
  if(busy||!pending||!client)return;
@@ -197,7 +237,10 @@ async function checkAction(){
  try{
   const result=await active.run(runId);
   if(client!==active||pending!==runId)return;
-  if(result.status!=="completed"){actionStatus("pending",meta?.action==="pro-generate"?"AI generation in progress":"Action in progress","GitHub status: "+result.status+". The app will check again automatically.");return;}
+  if(result.status!=="completed"){
+  const waiting=["queued","requested","waiting","pending"].includes(result.status),elapsed=Math.max(0,Math.floor((Date.now()-(meta?.started||Date.now()))/1000));
+  actionStatus("pending",waiting?"Waiting for GitHub runner":meta?.action==="pro-generate"?"Research workflow running":"Action in progress","GitHub status: "+result.status+" · "+Math.floor(elapsed/60)+"m "+elapsed%60+"s elapsed. "+(waiting?"No execution confirmed yet.":"Research, validation and saving occur on GitHub.")+" The app checks again automatically.");return;
+ }
   await load();fillBrand();
   let confirmed=result.conclusion==="success";
   if(confirmed&&meta?.action==="delete")confirmed=!data.drafts.some(r=>r.draft.id===meta.id);
