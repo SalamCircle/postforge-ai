@@ -1,0 +1,37 @@
+name: PostForge Mobile Studio
+on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: 'Reviewed mobile action JSON'
+        required: true
+        type: string
+      confirmation:
+        description: 'Explicit user review confirmation'
+        required: true
+        type: string
+permissions: {}
+jobs:
+  apply:
+    if: github.event.repository.private && github.ref == 'refs/heads/main' && inputs.confirmation == 'APPLY REVIEWED ACTION'
+    concurrency:
+      group: postforge-publish
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      MOBILE_ACTION: ${{ inputs.payload }}
+      LIVE_PUBLISH: 'false'
+      LINKEDIN_ACCESS_TOKEN: ''
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+      - name: Install image validation dependencies only when staging a source image
+        if: fromJSON(inputs.payload).action == 'stage-image'
+        run: python3 -m pip install -r requirements.txt
+      - name: Apply reviewed action without publishing credentials
+        run: python3 scripts/mobile_action.py

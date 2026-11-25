@@ -1,0 +1,19 @@
+{
+  "name": "Example professional brand",
+  "audience": "Technology learners and practitioners",
+  "voice": "Clear, factual, approachable",
+  "goals": [
+    "Share practical insights",
+    "Build credibility"
+  ],
+  "pillars": [
+    "AI",
+    "Cybersecurity",
+    "Software engineering"
+  ],
+  "avoid": [
+    "Unverified claims",
+    "Repetitive promotional content",
+    "Private information"
+  ]
+}

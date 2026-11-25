@@ -1,5 +1,7 @@
 # Provider-neutral prompts
 
+For the complete tested ChatGPT connection, draft-only and explicitly authorized live publication prompts, see [Connect ordinary ChatGPT](CHATGPT-SETUP.md).
+
 ## Plan
 Act as a security-conscious developer. Explain the official LinkedIn member API, GitHub Actions, independent credentials and zero-overage configuration. Never request secrets.
 

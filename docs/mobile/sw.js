@@ -1,0 +1,3 @@
+// Network only. Never cache API responses, credentials or private content.
+self.addEventListener('install',()=>self.skipWaiting());
+self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));

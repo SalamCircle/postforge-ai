@@ -1,0 +1,69 @@
+name: Verify Unified Edition (offline)
+on:
+  push:
+    branches: [main]
+    paths: ['docs/mobile/**', 'scripts/**', 'tests/**', '.github/workflows/core-verify.yml', 'docs/UNIFIED-SETUP.md']
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      LIVE_PUBLISH: 'false'
+      LINKEDIN_ACCESS_TOKEN: ''
+      LIVE_ENGAGEMENT: 'false'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install dependencies and security tools
+        run: python3 -m pip install -r requirements.txt pip-audit bandit
+      - name: Dependency audit
+        run: python3 -m pip_audit -r requirements.txt --strict
+      - name: Source security scan
+        run: python3 -m bandit -r scripts -ll
+      - name: Existing and new regression tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Studio CLI smoke test without credentials
+        run: |
+          python3 scripts/content_studio.py --help
+          python3 scripts/v2_manager.py schedule-preview 2026-12-01T14:30
+      - name: Validate dashboard JavaScript and HTML assets
+        run: |
+          node --check dashboard/app.js
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          class Check(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.ids=set()
+              def handle_starttag(self, tag, attrs):
+                  a=dict(attrs)
+                  if "id" in a:
+                      if a["id"] in self.ids:
+                          raise ValueError("Duplicate HTML id")
+                      self.ids.add(a["id"])
+          check=Check()
+          check.feed(Path("dashboard/index.html").read_text())
+          if not {"calendar","drafts","brand","research","health","draft-form","review","plan"}.issubset(check.ids):
+              raise ValueError("Dashboard section missing")
+          PY
+      - name: Mobile API contract and syntax tests
+        run: |
+          node --check docs/mobile/api.mjs
+          node --check docs/mobile/app.mjs
+          node --check docs/mobile/sw.js
+          node --check docs/mobile/vault.mjs
+          node --test tests/test_mobile_api.mjs tests/test_mobile_vault.mjs
+      - name: Mobile browser acceptance smoke test
+        run: |
+          python3 -m pip install playwright==1.56.0
+          if ! command -v google-chrome >/dev/null && ! command -v chromium >/dev/null; then
+            python3 -m playwright install chromium
+          fi
+          python3 tests/mobile_browser_smoke.py

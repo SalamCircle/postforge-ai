@@ -1,6 +1,8 @@
 # Verification guide
 
-![Illustrated verification checklist](assets/verification.svg)
+[![Open private Actions](assets/v1-safe-test-form.svg)](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow)
+
+[**Open private Actions →**](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow)
 
 These are expected outcomes, not screenshots of completed community tests.
 
@@ -8,6 +10,10 @@ These are expected outcomes, not screenshots of completed community tests.
 Open Actions in your private deployment, select Tests, and inspect every job. Leave LIVE_PUBLISH unset. Copy examples/post.json to queue/YYYY-MM-DD-HHMMSS.json (today in UTC), replacing the date and text. Select PostForge Publisher → Run workflow → main if a push did not trigger it. A successful dry run prints `Dry run: queue and visual validated; no network request`. This does not verify the token or image upload.
 
 ## Live test
+
+[![Open private variables](assets/v1-live-variable-form.svg)](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables)
+
+[**Open private variables →**](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables)
 Confirm your token belongs to your intended member account in LinkedIn's OAuth tools. Review the queue content, billing and permissions. Set Actions repository variable LIVE_PUBLISH to true. Dispatch PostForge Publisher on main. Unlike the original personal workflow, there is no mode dropdown or post text field.
 
 Inspect state/<content-fingerprint>.json. Expected example (not actual evidence):
@@ -17,6 +23,14 @@ Inspect state/<content-fingerprint>.json. Expected example (not actual evidence)
 Open [LinkedIn](https://www.linkedin.com/feed/) and confirm the text and image. A claimed receipt alone is not success. If claimed or uncertain, stop and investigate; do not delete the claim or retry blindly.
 
 ## Automation verification
+
+[![Inspect actual LinkedIn post](assets/v1-receipt-check-form.svg)](https://www.linkedin.com/feed/)
+
+[**Inspect actual LinkedIn post →**](https://www.linkedin.com/feed/)
+
+[![Open reusable prompts](assets/v1-schedule-form.svg)](PROMPTS.md)
+
+[**Open reusable prompts →**](PROMPTS.md)
 Schedule the external LLM to create one dated queue file on a future day. Confirm the write occurred without interactive approval, the workflow ran, and the receipt and actual post match. Rerun only after confirmed publication to verify the existing receipt prevents a second post. Disable LIVE_PUBLISH when finished if not ready for unattended operation.
 
 ## Release evidence

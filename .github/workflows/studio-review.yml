@@ -1,0 +1,50 @@
+name: Content Studio — approve and queue
+on:
+  workflow_dispatch:
+    inputs:
+      draft_id:
+        description: 'Exact draft ID from the review'
+        required: true
+        type: string
+      digest:
+        description: 'Full SHA-256 from the review of the current draft'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type APPROVE AND QUEUE after reviewing the complete draft'
+        required: true
+        type: string
+permissions: {}
+concurrency:
+  group: postforge-publish
+  cancel-in-progress: false
+jobs:
+  review:
+    if: github.event.repository.private && github.ref == 'refs/heads/main' && inputs.confirmation == 'APPROVE AND QUEUE'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      DRAFT_ID: ${{ inputs.draft_id }}
+      REVIEW_DIGEST: ${{ inputs.digest }}
+      LIVE_PUBLISH: 'false'
+      LINKEDIN_ACCESS_TOKEN: ''
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+      - name: Approve exact draft and export
+        run: |
+          [[ "$DRAFT_ID" =~ ^[a-z0-9][a-z0-9-]{0,47}$ ]]
+          [[ "$REVIEW_DIGEST" =~ ^[a-f0-9]{64}$ ]]
+          python3 scripts/content_studio.py approve "$DRAFT_ID" --digest "$REVIEW_DIGEST"
+          python3 scripts/content_studio.py export "$DRAFT_ID" --digest "$REVIEW_DIGEST"
+      - name: Commit only approved queue and approval record
+        run: |
+          git add -- "studio/approvals/$DRAFT_ID.json" "queue/"*-studio-"$DRAFT_ID.json"
+          git diff --cached --check
+          git config user.name postforge-studio
+          git config user.email postforge-studio@users.noreply.github.com
+          git commit -m "Queue approved content studio draft"
+          git push origin HEAD:main
