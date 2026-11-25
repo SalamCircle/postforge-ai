@@ -8,6 +8,8 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
+import shutil
 from pathlib import Path
 
 FILES = tuple([
@@ -107,6 +109,7 @@ FILES = tuple([
   "docs/assets/setup-detail-07.svg",
   "docs/assets/setup-detail-08.svg",
   "docs/assets/pro-setup-flow.svg",
+  "docs/assets/portable-migration.svg",
   "docs/CONTENT-STUDIO.md",
   "docs/V2-PRO.md",
   "docs/VISUAL-SETUP.md",
@@ -222,7 +225,15 @@ def apply(root, source=SOURCE, expected="", verify=True):
             # No provider credentials or publishing opt-ins are inherited.
             env = {k: v for k, v in os.environ.items() if k in ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "TMPDIR", "HOME", "USERPROFILE", "LANG", "LC_ALL")}
             env.update(LIVE_PUBLISH="false", TIMED_PUBLISH="false", PRO_AI_ENABLED="false", PYTHONDONTWRITEBYTECODE="1")
-            subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"], cwd=root, env=env, check=True)
+            # Test a clean copy of the resulting managed files, never the user's
+            # private data or additional local tests.
+            with tempfile.TemporaryDirectory() as tmp:
+                sandbox = Path(tmp)
+                for name in FILES:
+                    dest = sandbox / name
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(safe_path(root, name), dest)
+                subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"], cwd=sandbox, env=env, check=True)
         if protected(root) != before:
             raise ValueError("Protected data changed")
     except BaseException:

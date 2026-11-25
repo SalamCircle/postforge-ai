@@ -50,3 +50,31 @@ class PortableMigrationTests(unittest.TestCase):
                 self.assertEqual(p.git(dst,"status","--porcelain"),"")
                 write(dst,"README.md","dirty")
                 with self.assertRaises(ValueError):p.plan(dst,src)
+
+    def test_full_allowlist_migrates_real_package_without_private_data(self):
+        for version in (None, "2.0.0-alpha.1", "2.0.0-rc.1"):
+            with self.subTest(version=version), tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp); src=root/"src"; dst=root/"dst"; init(src); init(dst)
+                for name in p.FILES:
+                    target=src/name; target.parent.mkdir(parents=True,exist_ok=True)
+                    target.write_bytes((p.SOURCE/name).read_bytes())
+                write(dst,"README.md","# PostForge AI\n")
+                write(dst,".github/workflows/publish.yml","name: PostForge Publisher\n")
+                if version: write(dst,"VERSION",version+"\n")
+                if version=="2.0.0-rc.1":
+                    write(dst,".postforge-installation.json",'{"product":"postforge-ai","edition":"v2-core","mobile_protocol":1}')
+                    write(dst,"scripts/content_studio.py","prior Core fixture")
+                for name in ("queue/fixture.json","state/fixture.json","studio/drafts/fixture.json","scheduled/fixture.json"):
+                    write(dst,name,"protected fixture")
+                write(dst,"custom.txt","keep")
+                commit(src); commit(dst)
+                before=p.protected(dst)
+                plan=p.plan(dst,src)
+                p.apply(dst,src,plan["plan_sha256"],verify=False)
+                self.assertEqual(before,p.protected(dst))
+                for name in p.FILES:
+                    self.assertEqual((src/name).read_bytes(),(dst/name).read_bytes(),name)
+                self.assertEqual((dst/"custom.txt").read_text(),"keep")
+                self.assertEqual((dst/"README.md").read_text(),"# PostForge AI\n")
+                commit(dst)
+                self.assertEqual(p.plan(dst,src)["changes"],[])
