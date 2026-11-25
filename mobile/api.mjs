@@ -160,6 +160,6 @@ export class Client{
     return this.request("/actions/workflows/pro-ai.yml/dispatches",{ref:"main",inputs:{payload,confirmation:confirmations[mode]}});
   }
   async recentRuns(workflow){if(!["mobile-studio.yml","pro-ai.yml","publish-reviewed.yml"].includes(workflow))throw Error("Unsupported workflow");const result=await this.request("/actions/workflows/"+workflow+"/runs?branch=main&event=workflow_dispatch&per_page=10");if(!Array.isArray(result.workflow_runs))throw Error("Workflow history unavailable");return result.workflow_runs.filter(r=>/^\d+$/.test(String(r.id))&&r.head_branch==="main"&&r.event==="workflow_dispatch").slice(0,10);}
-  async headChanged(){const r=await this.request("/git/ref/heads/"+this.#branch);return r.object?.sha!==this.head;}
+  async headChanged(){const r=await this.request("/git/ref/heads/"+this.#branch);if(!ID.test(r?.object?.sha))throw Error("Invalid branch head");return r.object.sha!==this.head;}
   async run(id){if(!/^\d+$/.test(String(id)))throw Error("Invalid run ID");return this.request("/actions/runs/"+id);}
 }
