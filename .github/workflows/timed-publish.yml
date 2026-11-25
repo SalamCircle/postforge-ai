@@ -1,0 +1,47 @@
+name: PostForge Timed Publishing
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+permissions: {}
+jobs:
+  timed:
+    if: github.event.repository.private && github.ref == 'refs/heads/main' && vars.TIMED_PUBLISH == 'true'
+    concurrency:
+      group: postforge-publish
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+      - name: Check whether a timed post is due
+        id: due
+        run: |
+          python3 - <<'PY'
+          import os, datetime, json
+          from scripts import publish
+          now = datetime.datetime.now(datetime.timezone.utc)
+          eligible = False
+          for path in publish.queue_paths(now.date().isoformat()):
+              item = publish.validate(json.loads(path.read_text()), now.date().isoformat())
+              if publish.due(item, now, True) and not publish.duplicate(item, publish.ROOT / "state"):
+                  eligible = True
+          with open(os.environ["GITHUB_OUTPUT"],"a") as out:
+              out.write("eligible=" + str(eligible).lower() + "\n")
+          PY
+      - if: steps.due.outputs.eligible == 'true'
+        run: python3 -m pip install -r requirements.txt
+      - if: steps.due.outputs.eligible == 'true'
+        run: |
+          python3 -m unittest discover -s tests -v
+          git config user.name postforge-bot
+          git config user.email postforge-bot@users.noreply.github.com
+          python3 scripts/publish.py
+        env:
+          TIMED_ONLY: 'true'
+          LIVE_PUBLISH: ${{ vars.LIVE_PUBLISH }}
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}

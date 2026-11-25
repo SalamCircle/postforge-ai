@@ -1,0 +1,60 @@
+name: PostForge Pro AI draft
+on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: 'Reviewed AI draft request JSON'
+        required: true
+        type: string
+      confirmation:
+        description: 'GENERATE DRAFT ONLY, RESEARCH AND QUEUE, or RESEARCH AND PUBLISH'
+        required: true
+        type: string
+permissions: {}
+jobs:
+  generate:
+    if: github.event.repository.private && github.ref == 'refs/heads/main'
+    concurrency:
+      group: ${{ inputs.confirmation == 'GENERATE DRAFT ONLY' && 'postforge-pro-draft' || 'postforge-publish' }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    permissions:
+      contents: write
+    env:
+      PRO_REQUEST: ${{ inputs.payload }}
+      PRO_AI_MODEL: ${{ vars.PRO_AI_MODEL || 'openai/gpt-oss-20b' }}
+      TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      PRO_IMAGE_ENABLED: ${{ vars.PRO_IMAGE_ENABLED }}
+      PRO_IMAGE_FREE_ONLY: ${{ vars.PRO_IMAGE_FREE_ONLY }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_IMAGE_TOKEN: ${{ secrets.CLOUDFLARE_IMAGE_TOKEN }}
+      PRO_CONFIRMATION: ${{ inputs.confirmation }}
+      LIVE_PUBLISH: ${{ inputs.confirmation == 'RESEARCH AND PUBLISH' && vars.LIVE_PUBLISH || 'false' }}
+      LINKEDIN_ACCESS_TOKEN: ${{ inputs.confirmation == 'RESEARCH AND PUBLISH' && secrets.LINKEDIN_ACCESS_TOKEN || '' }}
+      TIMED_PUBLISH: ${{ vars.TIMED_PUBLISH }}
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Require explicit activation and reviewed request
+        env:
+          ENABLED: ${{ vars.PRO_AI_ENABLED }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          if [ "$ENABLED" != true ]; then
+            echo 'Pro AI is disabled or request is not confirmed. No provider calls made.'
+            exit 1
+          fi
+          case "$CONFIRMATION" in
+            'GENERATE DRAFT ONLY') ;;
+            'RESEARCH AND QUEUE') test "$TIMED_PUBLISH" = true || { echo 'Enable timed publishing before auto-queue.'; exit 1; } ;;
+            'RESEARCH AND PUBLISH') test "$LIVE_PUBLISH" = true || { echo 'Live publication is disabled.'; exit 1; } ;;
+            *) echo 'Unrecognized authorization.'; exit 1 ;;
+          esac
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+      - name: Install existing image renderer for validation and publication
+        run: python3 -m pip install -r requirements.txt
+      - name: Research and apply selected automation
+        run: python3 -m scripts.pro_assistant
