@@ -36,7 +36,7 @@ export function timingFields(draft){
 }
 
 const queueName=d=>d.date+"-studio-"+d.id+".json";
-const payload=d=>Object.fromEntries(["date","text","visual","scheduled_at","approved_image"].filter(k=>k in d).map(k=>[k,d[k]]));
+const payload=d=>Object.fromEntries(["date","text","visual","scheduled_at","approved_image","ai_image"].filter(k=>k in d).map(k=>[k,d[k]]));
 const today=()=>new Date().toISOString().slice(0,10);
 const missed=d=>d.date<today()||(d.scheduled_at&&Date.now()>Date.parse(d.scheduled_at)+7200000);
 export async function view(files,start=today(),days=30){
@@ -59,9 +59,9 @@ export async function view(files,start=today(),days=30){
 export function sourceImageRequested(item){
   return Boolean(item?.find_images)||/\b(?:actual|real|official|source)\s+image\b/i.test(String(item?.instructions||""));
 }
-export function proImagePreflight(request,smartVisual=false){
+export function proImagePreflight(request,smartVisual=false,aiVisual=false){
   const items=request.requests||[request],mode=request.automation||"review";
-  if(items.some(i=>i.visual_mode!==undefined&&(!smartVisual||!["smart","original","source-only","text"].includes(i.visual_mode))))throw Error("Install compatible Smart Auto Visual support first, or choose automatic detection.");
+  if(items.some(i=>i.visual_mode!==undefined&&(!smartVisual||!["smart","original","source-only","text",...(aiVisual?["ai-photo","ai-illustration","ai-poster"]:[])].includes(i.visual_mode))))throw Error("Install compatible Smart Auto Visual support first, or choose automatic detection.");
   if(!smartVisual&&mode!=="review"&&items.some(sourceImageRequested))throw Error("Real source images need approval. Select Require approval, or remove the source-image request and use an original graphic for automatic publishing.");
 }
 export class Client{
@@ -125,7 +125,8 @@ export class Client{
     const deletion=compatible&&(await this.readBlob(entries.get("scripts/mobile_action.py"),30000)).includes('"delete-many"');
     const recovery=pro&&regular("scripts/pro_recovery.py");
     const smartVisual=pro&&regular("scripts/smart_visual.py");
-    return {version,pro,sourceImages,delivery,timedChecks,automation,deletion,recovery,smartVisual,edition:pro?"V2 Pro":compatible?"V2":v2?"V2 Alpha":"V1 Publishing Engine",core:compatible,upgrade:!compatible,branch:this.#branch};
+    const aiVisual=smartVisual&&regular("scripts/ai_visual.py");
+    return {version,pro,sourceImages,delivery,timedChecks,automation,deletion,recovery,smartVisual,aiVisual,edition:pro?"V2 Pro":compatible?"V2":v2?"V2 Alpha":"V1 Publishing Engine",core:compatible,upgrade:!compatible,branch:this.#branch};
   }
   async snapshot(){
     this.head=null;this.writable=false;this.compatibility=null;this.#assets.clear();
@@ -138,7 +139,7 @@ export class Client{
     if(entries.length>500||entries.some(e=>e.size>100000||!ID.test(e.sha)))throw Error("Workspace exceeds mobile preview limits");
     if(compatibility.recovery){const journals=tree.tree.filter(e=>RECOVERY_FILE.test(e.path)&&e.type==="blob"&&e.mode==="100644"&&ID.test(e.sha)&&Number.isInteger(e.size)&&e.size<=30000).sort((a,b)=>b.path.length-a.path.length||b.path.localeCompare(a.path)).slice(0,25);entries.push(...journals);}
     for(let i=0;i<entries.length;i+=6)await Promise.all(entries.slice(i,i+6).map(async e=>{files[e.path]=JSON.parse(await this.readBlob(e));}));
-    if(compatibility.sourceImages)this.#assets=new Map(tree.tree.filter(e=>/^studio\/assets\/[a-f0-9]{64}\.png$/.test(e.path)).map(e=>[e.path,e]));
+    if(compatibility.sourceImages||compatibility.aiVisual)this.#assets=new Map(tree.tree.filter(e=>/^studio\/assets\/[a-f0-9]{64}\.png$/.test(e.path)).map(e=>[e.path,e]));
     this.head=head;this.compatibility=compatibility;this.writable=this.#branch==="main"&&compatibility.core;
     return files;
   }
@@ -151,7 +152,7 @@ export class Client{
     return this.request("/actions/workflows/mobile-studio.yml/dispatches",{ref:"main",inputs:{payload,confirmation:"APPLY REVIEWED ACTION"}});
   }
   async generateDraft(request){
-    proImagePreflight(request,this.compatibility?.smartVisual);
+    proImagePreflight(request,this.compatibility?.smartVisual,this.compatibility?.aiVisual);
     if(!this.writable||!this.compatibility?.pro||!ID.test(this.head))throw Error("Install and configure V2 Pro on private main first.");
     const mode=request.automation||"review", confirmations={review:"GENERATE DRAFT ONLY",queue:"RESEARCH AND QUEUE",publish:"RESEARCH AND PUBLISH"};
     if(!Object.hasOwn(confirmations,mode)||(mode!=="review"&&!this.compatibility.automation))throw Error("Install compatible automation support first.");
