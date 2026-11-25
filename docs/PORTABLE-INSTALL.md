@@ -32,4 +32,16 @@ python postforge-source/scripts/portable_install.py apply my-private-repo --expe
 5. Review git status/diff. Verify protected history and the intended repository. Commit the reviewed code changes, then push using an authenticated Git client with permission to modify workflows. GitHub may require workflow-specific permissions. Do not force push; if main advanced, stop and reconcile. Do not include personal files.
 6. Run your repository's Tests and Verify V2 Content Studio workflows. Follow [Pro acceptance](V2-PRO.md) before enabling live publishing. Use the existing hosted web app; no local development server is necessary.
 
-No automatic remote migration is claimed: a GitHub Actions default token may not have permission to change workflow files. The explicit owner push is required. Do not grant broad persistent credentials to an automated installer. 
+## Alternative — reviewed GitHub Actions migration
+
+[Open the workflow template](portable-migration.yml) (copy into your own private repository as `.github/workflows/portable-migration.yml`). The template is not enabled in the public package. Review it before adding. This is a separate opt-in path, not a silent automatic upgrade.
+
+![Run a reviewed migration](assets/portable-workflow.svg)
+
+1. Disable LIVE_PUBLISH, TIMED_PUBLISH and PRO_AI_ENABLED, stop external writers and reconcile claims. Back up your private repository. Create the workflow file on main with the template. Do not change existing publisher workflows manually.
+2. In Actions → PostForge reviewed portable migration → Run workflow, choose main, mode plan and enter the exact SHA of the tested public candidate. The plan run has read-only permissions and no migration secret. Review the file list and plan SHA-256 in the logs.
+3. Only for apply, create a separate short-lived fine-grained GitHub token restricted to your private repository, with Contents read/write and Workflows read/write if available. The normal app token is unsuitable. Store it as a repository secret named POSTFORGE_MIGRATION_TOKEN. The default Actions token may not be allowed to modify workflow files; if your organisation blocks the permission, use the local reviewed push method instead.
+4. Re-run with mode apply, the same source SHA, the exact reviewed plan SHA-256 and confirmation APPLY REVIEWED PRO. The workflow refuses a changed plan, tests a clean copy without private data, commits only allowlisted files and pushes without force. No provider or LinkedIn credentials are used.
+5. Verify the resulting commit and run logs, then remove POSTFORGE_MIGRATION_TOKEN and revoke its token at GitHub. Keep publishing disabled until your own acceptance checks pass. If any job fails, inspect logs and do not blindly rerun.
+
+The workflow template is a candidate; its real remote push requires your repository-specific permissions and has not been exercised with a live migration token by the maintainers. Do not use it on an unreviewed source SHA. 

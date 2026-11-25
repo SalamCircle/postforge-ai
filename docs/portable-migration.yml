@@ -1,0 +1,101 @@
+name: PostForge reviewed portable migration
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [plan, apply]
+        default: plan
+        required: true
+      source_sha:
+        description: 'Exact reviewed public Pro release commit (40 hex characters)'
+        required: true
+        type: string
+      plan_sha256:
+        description: 'Copy the plan hash from the plan run (apply only)'
+        required: false
+        type: string
+      confirmation:
+        description: 'For apply: type APPLY REVIEWED PRO'
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: postforge-publish
+  cancel-in-progress: false
+jobs:
+  migration:
+    if: github.event.repository.private && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      LIVE_PUBLISH: 'false'
+      TIMED_PUBLISH: 'false'
+      PRO_AI_ENABLED: 'false'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Validate review and paused settings
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          MODE: ${{ inputs.mode }}
+          PLAN_SHA: ${{ inputs.plan_sha256 }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          TARGET_LIVE: ${{ vars.LIVE_PUBLISH }}
+          TARGET_TIMED: ${{ vars.TIMED_PUBLISH }}
+          TARGET_PRO: ${{ vars.PRO_AI_ENABLED }}
+        run: |
+          [[ "$SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$TARGET_LIVE" != true && "$TARGET_TIMED" != true && "$TARGET_PRO" != true ]]
+          if [ "$MODE" = apply ]; then
+            [[ "$PLAN_SHA" =~ ^[a-f0-9]{64}$ ]]
+            [[ "$CONFIRMATION" = "APPLY REVIEWED PRO" ]]
+          elif [ "$MODE" != plan ]; then
+            exit 1
+          fi
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          path: target
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: SalamCircle/postforge-ai
+          ref: ${{ inputs.source_sha }}
+          path: source
+          persist-credentials: false
+      - name: Confirm immutable source and inspect plan
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+          python3 source/scripts/portable_install.py plan target
+      - name: Apply exact plan and run isolated regression suite
+        if: inputs.mode == 'apply'
+        env:
+          PLAN_SHA: ${{ inputs.plan_sha256 }}
+        run: |
+          python3 -m pip install -r source/requirements.txt
+          python3 source/scripts/portable_install.py apply target --expect "$PLAN_SHA"
+          python3 - <<'PY'
+          import subprocess, sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path("source").resolve()))
+          from scripts.portable_install import FILES
+          subprocess.run(["git","add","--",*FILES],cwd="target",check=True)
+          PY
+          git -C target diff --cached --check
+          if git -C target diff --cached --quiet; then
+            echo 'No source changes required.'
+          else
+            git -C target -c user.name=postforge-migration -c user.email=postforge-migration@users.noreply.github.com commit -m "Install reviewed portable PostForge Pro"
+          fi
+      - name: Push reviewed commit without force
+        if: inputs.mode == 'apply'
+        working-directory: target
+        env:
+          GH_TOKEN: ${{ secrets.POSTFORGE_MIGRATION_TOKEN }}
+        run: |
+          test -n "$GH_TOKEN"
+          gh auth setup-git
+          git push origin HEAD:main
