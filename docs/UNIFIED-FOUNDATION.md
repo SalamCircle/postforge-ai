@@ -6,9 +6,9 @@
 
 **Existing installation?** Keep your own private repository and skip this step.
 
-For a new installation, open the official PostForge AI repository using the visual card. Once the clean Unified Edition template is approved and GitHub displays **Use this template**, select **Create a new repository**, choose your own account, enter a name such as `postforge-ai-private`, select **Private**, leave **Include all branches** unchecked, and create your copy. The template copies the prepared source; do not create an empty repository, fork a live deployment or upload ZIP files as part of the normal setup.
+For a new installation, open the official PostForge AI repository using the visual card. Once GitHub displays **Use this template**, select **Create a new repository**, choose your own account, enter a name such as `postforge-ai-private`, select **Private**, leave **Include all branches** unchecked, and create your copy. The template copies the prepared source; do not create an empty repository, fork a live deployment or upload ZIP files as part of the normal setup.
 
-**Availability:** use the official repository's default branch only after the Unified Edition release checks pass and the owner enables the template setting. If **Use this template** is not visible, the template has not yet been activated. Never substitute another person's private deployment.
+**Availability:** the Unified Edition default branch passed offline release checks. If **Use this template** is not visible, the repository owner has not activated GitHub's template setting. [Open the template form when enabled](https://github.com/SalamCircle/postforge-ai/generate). Never substitute another person's private deployment.
 
 ## Step 2 — Create your LinkedIn developer application
 

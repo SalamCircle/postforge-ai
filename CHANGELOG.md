@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0] — Unified Edition
+
+- Unified private publishing workspace, content studio, approvals, delivery, recovery and optional research/artwork.
+- Public static dashboard with visual GitHub and ChatGPT setup and copyable prompts.
+- Clean repository template and root-ready GitHub Pages hosting; owner template activation is required.
+- Offline regression, dependency audit, source scan, API contract and browser acceptance gates. Live provider access and individual account configuration must be verified separately.
+
 ## [1.0.0] — Community release candidate
 
 - Official LinkedIn member text and image posting via authorised OAuth token.

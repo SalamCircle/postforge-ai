@@ -12,7 +12,7 @@ MIT-licensed, provider-independent LinkedIn publishing and content workspace. On
 
 [![Complete visual setup](docs/assets/unified-start.svg)](docs/UNIFIED-SETUP.md)
 
-The clean Unified Edition distribution must pass release checks before template activation. Once **Use this template** is available on the official repository, choose your own account, select **Private**, and copy only the default branch. Never fork or expose a live private workspace.
+The Unified Edition source passed offline release checks. On the official repository, choose **Use this template → Create a new repository**, select your own account, choose **Private**, and copy only the default branch. If the button is missing, the owner has not enabled GitHub's template setting yet. [Open the template form when enabled](https://github.com/SalamCircle/postforge-ai/generate). Never fork or expose a live private workspace.
 
 ## Open the dashboard
 
@@ -20,7 +20,7 @@ The clean Unified Edition distribution must pass release checks before template 
 
 [![Optional website hosting](docs/assets/unified-hosting-nav.svg)](docs/UNIFIED-HOSTING.md)
 
-The hosted dashboard is already available; self-hosting is optional. The [frontend-only website branch](https://github.com/SalamCircle/postforge-ai/tree/website-template) has a root-ready static client. A separate website template repository is required for one-click self-hosting.
+The hosted dashboard is already available; self-hosting is optional. To host your own copy, make a second, **Public** copy of this clean template, then choose **Settings → Pages → Deploy from a branch → main → / (root) → Save**. The root entry opens the static dashboard. Never use that public copy as your publishing workspace or add private records or secrets. It includes already-public engine source; for frontend-only hosting use the [website-template branch](https://github.com/SalamCircle/postforge-ai/tree/website-template) or the frontend ZIP from [Releases](https://github.com/SalamCircle/postforge-ai/releases).
 
 ## Connect ChatGPT
 

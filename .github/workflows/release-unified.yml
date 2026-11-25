@@ -1,0 +1,57 @@
+name: Publish Unified Edition release (verified)
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/release-unified.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: postforge-unified-release-2
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.repository == 'SalamCircle/postforge-ai' && !github.event.repository.private && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/core-verify.yml
+    permissions:
+      contents: read
+  release:
+    needs: verify
+    if: github.repository == 'SalamCircle/postforge-ai' && !github.event.repository.private && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify clean release tree and package static client
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, ZIP_DEFLATED
+          import subprocess
+          files = subprocess.check_output(['git','ls-files'], text=True).splitlines()
+          for path in files:
+              if path.split('/')[0] in {'queue','state','studio','scheduled'} and path.split('/',1)[1] != 'README.md':
+                  raise SystemExit('Unexpected private workspace record')
+          expected = {'api.mjs','app.mjs','icon-192.svg','icon-512.svg','index.html','logo-pro.svg','logo-shared.svg','logo.svg','manifest.webmanifest','privacy.html','responsible-ai.html','style.css','sw.js','terms.html','trust.html','vault.mjs'}
+          actual = {p.removeprefix('docs/mobile/') for p in files if p.startswith('docs/mobile/')}
+          if actual != expected or Path('VERSION').read_text().strip() != '2.0.0':
+              raise SystemExit('Unexpected release version or frontend layout')
+          with ZipFile('postforge-web-frontend.zip','w',ZIP_DEFLATED) as z:
+              for name in sorted(expected):
+                  z.write('docs/mobile/'+name,name)
+              z.write('LICENSE','LICENSE')
+              z.writestr('.nojekyll','')
+          PY
+      - name: Publish release without external credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v2.0.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'Release already exists; refusing to overwrite.'
+            exit 1
+          fi
+          gh release create v2.0.0 postforge-web-frontend.zip --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "PostForge AI V2 Pro — Unified Edition 2.0.0" --notes-file docs/RELEASE-NOTES.md --latest

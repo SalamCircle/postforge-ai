@@ -4,17 +4,17 @@
 
 [![Open existing hosted PostForge AI app](assets/unified-nav-app.svg)](https://salamcircle.github.io/postforge-ai/mobile/)
 
-If you want your own website, the normal route is to copy a prepared, frontend-only public template and enable GitHub Pages. No ZIP extraction, manual file upload, custom deployment workflow, local server or paid hosting is needed. Your publishing repository remains private.
+If you want your own website, copy the clean official template a second time as a **separate public website repository**, then enable GitHub Pages. No ZIP extraction, manual file upload, custom deployment workflow, local server or paid hosting is needed. Your publishing repository remains private.
 
-## Hosting 1 — Copy the ready-to-deploy website template
+## Hosting 1 — Copy PostForge AI for your website (skip if already copied)
 
-[![Open the frontend-only root-ready website branch](assets/hosting-repo-form.svg)](https://github.com/SalamCircle/postforge-ai/tree/website-template)
+[![Open official PostForge AI repository](assets/hosting-repo-form.svg)](https://github.com/SalamCircle/postforge-ai)
 
-**Release status:** the official repository now contains a frontend-only `website-template` branch with `index.html` and its assets at the root. This branch is ready to seed a separate public website repository; GitHub templates apply to repositories, not individual branches, so a separate frontend template repository still needs to be created and enabled. Do not deploy the full publishing source as a public website. Existing users can keep using the hosted app.
+Once the owner enables GitHub templates, choose **Use this template → Create a new repository**, your own account, name `postforge-web`, visibility **Public**, default branch only. This is a clean public copy, distinct from your private publishing repository. It contains already-public source and an `index.html` at the root that opens the static dashboard. Never connect the public copy as a publishing workspace or add tokens, records or credentials to it. Publishing workflows require a private repository.
 
-Once the approved website template is available, open it, choose **Use this template → Create a new repository**, choose your own account and name (for example `postforge-web`), and select **Public**. Leave **Include all branches** unchecked. Never use the private publishing repository for public hosting. GitHub Free supports Pages for public repositories.
+[Open template form when enabled](https://github.com/SalamCircle/postforge-ai/generate). If the template button is absent, use the existing hosted dashboard until the owner activates it. If you already have the prepared public copy, skip to Hosting 2.
 
-If you already have your prepared public website repository, skip directly to Hosting 2.
+For a strictly frontend-only public repository, the [website-template branch](https://github.com/SalamCircle/postforge-ai/tree/website-template) and frontend-only ZIP on [Releases](https://github.com/SalamCircle/postforge-ai/releases) remain available as an advanced alternative.
 
 ## Hosting 2 — Enable GitHub Pages
 
@@ -26,7 +26,7 @@ Open your **own public website repository → Settings → Pages**. Under Build 
 
 [![Visit and verify your website](assets/hosting-visit-form.svg)](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
 
-After the Pages deployment succeeds, open **Settings → Pages → Visit site**. For the example repository the address is `https://YOUR-USERNAME.github.io/postforge-web/`. Use the exact HTTPS address GitHub displays. Check that the login screen, styles and navigation load before connecting your workspace.
+After the Pages deployment succeeds, open **Settings → Pages → Visit site**. For the example repository the address is `https://YOUR-USERNAME.github.io/postforge-web/`; the root entry opens `docs/mobile/` automatically. Use the exact HTTPS address GitHub displays. Check that the login screen, styles and navigation load before connecting your workspace.
 
 [![Connect your private publishing workspace](assets/hosting-connect-form.svg)](UNIFIED-WORKSPACE.md)
 
