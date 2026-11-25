@@ -8,9 +8,9 @@ If you want your own website, the normal route is to copy a prepared, frontend-o
 
 ## Hosting 1 — Copy the ready-to-deploy website template
 
-[![Open the official PostForge AI repository and locate the website template](assets/hosting-repo-form.svg)](https://github.com/SalamCircle/postforge-ai)
+[![Open the frontend-only root-ready website branch](assets/hosting-repo-form.svg)](https://github.com/SalamCircle/postforge-ai/tree/website-template)
 
-**Release status:** a separate frontend-only template with `index.html` and all required assets at the root of `main` is not yet published. The card opens the actual official repository, not a blank repository form. Do not use its current main branch for root hosting: it does not contain the website at the root. Existing users can keep using the hosted app.
+**Release status:** the official repository now contains a frontend-only `website-template` branch with `index.html` and its assets at the root. This branch is ready to seed a separate public website repository; GitHub templates apply to repositories, not individual branches, so a separate frontend template repository still needs to be created and enabled. Do not deploy the full publishing source as a public website. Existing users can keep using the hosted app.
 
 Once the approved website template is available, open it, choose **Use this template → Create a new repository**, choose your own account and name (for example `postforge-web`), and select **Public**. Leave **Include all branches** unchecked. Never use the private publishing repository for public hosting. GitHub Free supports Pages for public repositories.
 
