@@ -1,0 +1,93 @@
+# PostForge AI V2 / Pro — desktop and mobile web app
+
+> **Unified Edition:** Start with the [single complete visual setup guide](UNIFIED-SETUP.md). This page is retained for technical and historical reference. Edition-specific installers are retired.
+
+The mobile dashboard is a static, installable web app with no hosted Python server and no mandatory paid service. It reads a limited set of JSON records from your private repository directly via GitHub's HTTPS API. It does not send LinkedIn credentials to the browser. The mobile action workflow applies reviewed changes on the private main branch using the existing Python Content Studio validation; GitHub Actions minutes and GitHub API limits apply.
+
+## Preview and hosting
+
+[![Publish your web dashboard](assets/unified-hosting-nav.svg)](UNIFIED-HOSTING.md)
+
+For a new user, follow the complete browser-only hosting guide above. The mobile-preview settings below describe the maintainer's existing deployment only.
+
+[![Open the hosted web app](assets/install-web-app-form.svg)](https://salamcircle.github.io/postforge-ai/mobile/)
+
+[**Open the hosted web app →**](https://salamcircle.github.io/postforge-ai/mobile/)
+
+[![Open hosting settings (maintainers only)](assets/pages-setup-form.svg)](https://github.com/SalamCircle/postforge-ai/settings/pages)
+
+[**Open hosting settings (maintainers only) →**](https://github.com/SalamCircle/postforge-ai/settings/pages)
+
+The public static client must contain only the files in docs/mobile (no personal data). Deploy that folder from a clean public source using GitHub Pages, with HTTPS. The mobile client is not the private repository: never publish a private deployment or its queue, studio or state. Stable deployment remains gated by verification. The local computer dashboard is still available.
+
+## Connect on desktop or mobile
+
+[![Create read-only token](assets/v2-token-setup-form.svg)](https://github.com/settings/personal-access-tokens/new)
+
+[**Create read-only token →**](https://github.com/settings/personal-access-tokens/new)
+
+[![Connect to your private workspace](assets/v2-workspace-connect-form.svg)](https://salamcircle.github.io/postforge-ai/mobile/)
+
+[**Connect to your private workspace →**](https://salamcircle.github.io/postforge-ai/mobile/)
+
+1. Open the verified HTTPS mobile client in Chrome or Safari. Confirm the origin and source before entering credentials. Use a trusted self-hosted copy if you prefer.
+2. In GitHub Settings > Developer settings > Personal access tokens > Fine-grained tokens, create a short-lived token for the owner and **only your own private deployment repository**. Set Contents to Read-only. Metadata read is automatic. Do not grant Contents write, Workflows, Administration, or Secrets access.
+3. For viewing only, keep Actions permission unset. To enable interactive mobile changes, additionally grant Actions Read and write and check the opt-in box on connection. **Actions write permits dispatching other workflows in that repository, including publishing; it is not limited to this app.** Prefer read-only until you understand the permission. By default the token is held in page memory only; re-enter it after reload or disconnect, or use the optional encrypted device unlock described below. Do not send it in chat or put it in source.
+4. Enter owner/repository and your GitHub token. Choose installed main, or v2-core-development for read-only private testing. Read-only works without the new workflow on main. Write actions require the verified V2 Core package installed on private main.
+5. On Android, Chrome menu > Add to Home screen / Install app when offered. On iPhone, Safari Share > Add to Home Screen. Browser support varies. Internet access is required. No offline private content is cached.
+
+## Review and queue
+
+[![Open Content Studio](assets/v2-review-publish-form.svg)](https://salamcircle.github.io/postforge-ai/mobile/)
+
+[**Open Content Studio →**](https://salamcircle.github.io/postforge-ai/mobile/)
+
+The mobile client reads an immutable commit snapshot. It shows calendar, drafts, brand memory, AI brief and receipt-based health; server-side duplicate and approval checks remain authoritative. A user confirmation dispatches only mobile-studio.yml, which uses no LinkedIn token, verifies the reviewed snapshot is still current, applies one allowed action, and commits only studio and eligible queue JSON files without force. Refresh and review if the snapshot changes. Use Check last action before submitting another; inspect GitHub workflow history if the dispatch outcome is uncertain. No automatic retries. Queue export may cause a later scheduled publication using the existing publisher. A workflow-created commit does not itself trigger the publisher push workflow. Actions inputs are visible to authorised repository users; do not include secrets or unnecessary private information.
+
+## Limits and cost
+
+No public backend, database or new paid subscription is needed. Public GitHub Pages is available on GitHub Free, but private Actions usage remains subject to quotas; check your billing settings and prevent paid overages. Mobile writes consume Actions minutes. No extra scheduled mobile runner is enabled. The client is not a GitHub OAuth login; the fine-grained GitHub token is separate from your existing LinkedIn publishing credential. Never paste a LinkedIn token. Advanced engagement remains disabled pending separately approved LinkedIn permissions. Mobile browser and live API acceptance remain separate from mocked tests and source verification.
+
+## Installation recognition
+
+The client checks the private repository's publisher layout and signatures before loading content. Legacy V1 (no VERSION file) and V2 Alpha can display publishing queue and receipts only. A compatible V2 Core installation requires a supported VERSION, the `.postforge-installation.json` protocol marker, and all required studio components. A development branch is always read-only. Unsupported versions, incomplete marked installations and unrelated repositories are rejected. The interface links to upgrade availability rather than changing repositories automatically. These checks identify expected structure, not provenance or code authenticity: only connect repositories and workflows you trust. GitHub enforces actual token permissions; selecting reviewed writes does not prove Actions write access.
+
+## Optional device unlock
+
+[![Open workspace login](assets/v2-device-unlock-form.svg)](https://salamcircle.github.io/postforge-ai/mobile/)
+
+[**Open workspace login →**](https://salamcircle.github.io/postforge-ai/mobile/)
+
+On a trusted device, use a dedicated read-only fine-grained token and tick Remember encrypted read-only connection. Choose a unique passphrase (at least 12 characters; prefer several random words), different from your GitHub password. After a successful connection the browser stores an AES-256-GCM encrypted credential record, with fresh random salt and IV and PBKDF2-SHA-256 (600,000 iterations). No plaintext credential or workspace content is stored. Unlock always starts in read-only mode. The app cannot independently determine whether the supplied token itself has broader GitHub permissions, so use a dedicated read-only token. Direct editing-only sign-in cannot save a credential. A connected read-only workspace may explicitly save a separate encrypted editing authorization. Disconnect clears the active session; Forget saved connection removes the encrypted record. Revocation or expiry still happens at GitHub. This is not GitHub OAuth or an OS-backed biometric vault. A compromised origin, browser or unlocked device can expose credentials; do not enable this on shared devices. The default remains memory-only, and no server receives the passphrase.
+
+For future GitHub App sign-in, register a dedicated GitHub App with selected-repository permissions and a reviewed server-side OAuth exchange. Do not embed a client secret in the Pages app. Registration, deployment and live authorization remain separate release gates.
+
+## Full post reader and temporary editing
+
+[![Create separate editing token](assets/v2-editing-setup-form.svg)](https://github.com/settings/personal-access-tokens/new)
+
+[**Create separate editing token →**](https://github.com/settings/personal-access-tokens/new)
+
+[![Authorize editing in workspace](assets/v2-edit-session-form.svg)](https://salamcircle.github.io/postforge-ai/mobile/)
+
+[**Authorize editing in workspace →**](https://salamcircle.github.io/postforge-ai/mobile/)
+
+Tap any calendar post title to read the complete saved text, visual description (where retained), status and date. A published receipt containing a recognised LinkedIn post URN provides a link to LinkedIn. If the original queue record is no longer retained, the reader explicitly says that the text is unavailable; it does not fetch or invent the original post. The saved text may differ from subsequent edits made on LinkedIn.
+
+To retain convenient encrypted access while editing, connect with your dedicated Contents read-only token and save the encrypted connection, then tap Enable editing inside the installed main workspace. Supply a separate fine-grained token scoped to the same private repository, with Contents read-only and Actions read/write. By default the editing credential stays in memory. Optional encrypted editing authorization uses a separate vault and passphrase. The app checks the repository again and refreshes the reviewed snapshot. Editing ends after the selected duration (15 minutes by default, up to 30 days) or when Return to read only is pressed; the saved connection is preserved. An already submitted workflow may continue after editing ends. Check workflow history before retrying. GitHub enforces permissions at dispatch; the app cannot verify that a token has no broader permissions. A direct editing-only login is still available, but cannot save its token. The detected edition is shown after connection; internal compatibility identifiers remain unchanged.
+
+## Set date and time while composing
+
+[![Open draft composer](assets/v2-compose-form.svg)](https://salamcircle.github.io/postforge-ai/mobile/)
+
+[**Open draft composer →**](https://salamcircle.github.io/postforge-ai/mobile/)
+
+In Drafts, enter a publication date and optionally a publication time and IANA time zone (Europe/London by default). The preview shows the equivalent UTC instant. Saving stores the requested time with the draft in one reviewed action; it does not queue or publish. Blank time retains the date-only UTC schedule. When reopening a timed draft for editing, the exact stored UTC date and time are shown to avoid changing the instant across a daylight-saving transition; you may change the zone and wall-clock time deliberately. Clearing the time removes the timed schedule. Editing invalidates approval. Timed delivery remains best effort and requires the separately enabled timed workflow, available GitHub Actions capacity and existing live-publish authorization. This UI update does not enable it or change the daily publisher.
+
+## Configurable editing duration
+
+Choose 15 minutes, 30 minutes, 1 hour, 8 hours, 1 day, 7 days, 14 days or 30 days. The default is 15 minutes. The optional Remember encrypted editing authorization checkbox is available after connecting read-only to installed main. It encrypts a separate repository-scoped editing token and fixed expiry with AES-GCM and the existing PBKDF2 settings, using a distinct authentication context. On reopening, unlock the read-only workspace first, then Enable editing > Unlock editing with the editing vault passphrase. This does not extend the original deadline. Expired records cannot be unlocked; remove them using Forget saved editing token. Forget saved connection removes both vaults. Manual Return to read only clears the active editing session but retains any explicitly saved encrypted authorization until its deadline. The duration is a client-side session limit, not a change to GitHub token expiry or a server-enforced authorization boundary. A compromised browser/origin, device clock manipulation or direct token use outside the dashboard is outside this control. Use short durations where possible and never save editing tokens on shared devices. GitHub revocation and expiry still apply; already dispatched workflows can continue after locking. No publisher, queue, credentials on GitHub or workflow scheduling changes are made by this feature.
+
+### Focused workspace UI
+
+The responsive web studio uses a LinkedIn-inspired palette, system fonts, local icons, compact bottom navigation on mobile and sticky navigation on larger screens. Calendar, research, drafts, approval and secondary tools are distinct views. Composition, import, delivery, request recovery, health and AI brief are separated from the default workspace. Long lists initially show eight entries. Connection and token management live under More. Security controls, explicit confirmation, encrypted opt-in storage, no-store GitHub reads and server-side checks remain in place. No external fonts, scripts or analytics were added. The local dashboard uses the same visual styling and separate draft composer/import views.

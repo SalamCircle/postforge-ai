@@ -34,6 +34,6 @@ Leave LIVE_PUBLISH unset for dry runs. In your private deployment, open Actions 
 
 [![Open community test results](assets/buttons/tests.svg)](https://github.com/SalamCircle/postforge-ai/actions)
 
-[Full verification guide](VERIFY.md) · [Reusable scheduler prompts](PROMPTS.md) · [Beginner setup](START-HERE.md)
+[Full verification guide](VERIFY.md) · [Reusable scheduler prompts](PROMPTS.md) · [Beginner setup](UNIFIED-SETUP.md)
 
 The diagram describes intended implementation, not proof of successful live testing.

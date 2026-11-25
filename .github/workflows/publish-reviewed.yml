@@ -1,0 +1,42 @@
+name: PostForge Publish Reviewed Post Now
+on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: 'Exact reviewed queued draft and snapshot'
+        required: true
+        type: string
+      confirmation:
+        description: 'Explicit live publication confirmation'
+        required: true
+        type: string
+permissions: {}
+jobs:
+  publish:
+    if: github.event.repository.private && github.ref == 'refs/heads/main' && inputs.confirmation == 'PUBLISH NOW'
+    concurrency:
+      group: postforge-publish
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+      - run: python3 -m pip install -r requirements.txt
+      - name: Verify regression tests
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 -m unittest discover -s tests -v
+      - name: Publish only the explicitly reviewed queued post
+        env:
+          MOBILE_PUBLISH_REQUEST: ${{ inputs.payload }}
+          LIVE_PUBLISH: ${{ vars.LIVE_PUBLISH }}
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          git config user.name postforge-bot
+          git config user.email postforge-bot@users.noreply.github.com
+          python3 -m scripts.publish_reviewed

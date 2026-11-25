@@ -52,3 +52,5 @@ class LiveUploadContractTests(unittest.TestCase):
             receipt = json.loads(next((root / "state").glob("*.json")).read_text())
             self.assertEqual(receipt["status"], "published")
             self.assertTrue(receipt["visual"])
+            media = receipt["published_media"]
+            self.assertEqual((root / "state" / "media" / (media["sha256"]+".png")).read_bytes(), upload_calls[0][2])

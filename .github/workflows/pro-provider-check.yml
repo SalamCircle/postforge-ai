@@ -1,0 +1,54 @@
+name: Verify Pro AI providers (draft only)
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Confirm free provider accounts and included Actions minutes: type VERIFY FREE AI'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.event.repository.private && github.ref == 'refs/heads/main' && inputs.confirmation == 'VERIFY FREE AI'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify live research and generation without saving or publishing
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          PRO_AI_MODEL: ${{ vars.PRO_AI_MODEL || 'openai/gpt-oss-20b' }}
+          LIVE_PUBLISH: 'false'
+          LINKEDIN_ACCESS_TOKEN: ''
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 - <<'PY'
+          import datetime as dt
+          import os
+          import tempfile
+          from pathlib import Path
+          from scripts import pro_assistant as pro
+          if not all(os.environ.get(k) for k in ("GROQ_API_KEY","TAVILY_API_KEY")):
+              raise SystemExit("Missing AI provider secret.")
+          def transport(endpoint,key,body):
+              label="Tavily" if endpoint==pro.SEARCH else "Groq"
+              try:
+                  result=pro.call(endpoint,key,body)
+              except Exception:
+                  raise SystemExit(label+" runtime request failed; check key, model and free quota. No retry.") from None
+              print(label+" production runtime API responded.",flush=True)
+              return result
+          with tempfile.TemporaryDirectory() as temp:
+              root=Path(temp)
+              try:
+                  draft=pro.generate(root,{"topic":"AWS beginner cloud training","instructions":"Find current free learning options with an official source link. Do not claim a certificate unless supported.","date":(dt.datetime.now(dt.timezone.utc).date()+dt.timedelta(days=1)).isoformat(),"domains":["aws.amazon.com","skillbuilder.aws"]},os.environ["TAVILY_API_KEY"],os.environ["GROQ_API_KEY"],os.environ["PRO_AI_MODEL"],transport)
+              except Exception:
+                  raise SystemExit("Draft validation failed. No draft saved or published.") from None
+              assert draft["sources"] and not list(root.iterdir())
+              print("PASS: live source-grounded draft validated using the actual Pro runtime. No content stored, no LinkedIn call.")
+          PY

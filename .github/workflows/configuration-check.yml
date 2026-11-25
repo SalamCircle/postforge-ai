@@ -1,0 +1,43 @@
+name: Check optional integrations (no provider calls)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  configuration:
+    if: github.event.repository.private && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Report configuration presence only
+        env:
+          HAS_LINKEDIN: ${{ secrets.LINKEDIN_ACCESS_TOKEN != '' }}
+          HAS_GROQ: ${{ secrets.GROQ_API_KEY != '' }}
+          HAS_TAVILY: ${{ secrets.TAVILY_API_KEY != '' }}
+          HAS_IMAGE: ${{ secrets.CLOUDFLARE_IMAGE_TOKEN != '' }}
+          HAS_ACCOUNT: ${{ vars.CLOUDFLARE_ACCOUNT_ID != '' }}
+          LIVE: ${{ vars.LIVE_PUBLISH == 'true' }}
+          TIMED: ${{ vars.TIMED_PUBLISH == 'true' }}
+          AI: ${{ vars.PRO_AI_ENABLED == 'true' }}
+          IMAGE: ${{ vars.PRO_IMAGE_ENABLED == 'true' }}
+          FREE_ACK: ${{ vars.PRO_IMAGE_FREE_ONLY == 'DEDICATED_WORKERS_FREE_NO_PAYMENT_METHOD' }}
+        run: |
+          python3 - <<'PY'
+          import os
+          def yes(key): return os.environ.get(key) == "true"
+          def state(enabled, ready):
+              if not yes(enabled): return "Disabled (optional)"
+              return "Configured; validity and billing unverified" if ready else "Enabled but missing configuration"
+          rows = [
+              ("LinkedIn publishing", state("LIVE", yes("HAS_LINKEDIN"))),
+              ("Timed publishing", state("TIMED", yes("HAS_LINKEDIN") and yes("LIVE"))),
+              ("Integrated AI research", state("AI", yes("HAS_GROQ") and yes("HAS_TAVILY"))),
+              ("Advanced AI artwork", state("IMAGE", all(yes(k) for k in ("AI","HAS_GROQ","HAS_TAVILY","HAS_IMAGE","HAS_ACCOUNT","FREE_ACK")))),
+              ("Local graphics", "Included; no image key"),
+              ("External AI", "Optional; connection managed by user"),
+          ]
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a",encoding="utf-8") as out:
+              out.write("## PostForge AI Unified Edition configuration\n\nPresence only; no secrets printed, provider calls, writes or publication.\n\n")
+              for label, status in rows:
+                  out.write(f"- **{label}:** {status}\n")
+          PY

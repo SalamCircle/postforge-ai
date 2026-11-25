@@ -1,0 +1,18 @@
+{
+  "id": "example-security-series-01",
+  "date": "2030-01-01",
+  "title": "Why review permissions?",
+  "topic": "Security",
+  "series": "security-series",
+  "text": "Example draft: review the permissions you grant applications and keep access limited to what is needed.",
+  "sources": [
+    "https://example.com/replace-with-verified-source"
+  ],
+  "visual": {
+    "title": "Review your permissions",
+    "points": [
+      "Grant only necessary access",
+      "Review permissions regularly"
+    ]
+  }
+}
