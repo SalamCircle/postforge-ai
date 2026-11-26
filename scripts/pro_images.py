@@ -89,9 +89,12 @@ def stage(root,url,source,confirmation,fetch=download):
 
 
 GENERATED_MODEL="@cf/black-forest-labs/flux-1-schnell"
+CHATGPT_IMAGE_MODEL="chatgpt:user-attested"
+CHATGPT_CONFIRMATION="I CONFIRM THIS IS MY CHATGPT GENERATED IMAGE"
+
 
 def validate_generated(meta):
-    if not isinstance(meta,dict) or set(meta)!={"sha256","model"} or not isinstance(meta["sha256"],str) or not re.fullmatch(r"[0-9a-f]{64}",meta["sha256"]) or meta["model"]!=GENERATED_MODEL:
+    if not isinstance(meta,dict) or set(meta)!={"sha256","model"} or not isinstance(meta["sha256"],str) or not re.fullmatch(r"[0-9a-f]{64}",meta["sha256"]) or meta["model"] not in (GENERATED_MODEL,CHATGPT_IMAGE_MODEL):
         raise ValueError("Invalid AI image metadata")
     return meta
 
@@ -103,9 +106,12 @@ def load_generated(root,meta):
     raw=p.read_bytes()
     if hashlib.sha256(raw).hexdigest()!=meta["sha256"] or not raw.startswith(b"\x89PNG\r\n\x1a\n"):
         raise ValueError("AI image bytes changed")
+    if meta["model"]==CHATGPT_IMAGE_MODEL: verify_exact_png(raw)
     return raw
 
 def stage_generated(root,png,model):
+    if model!=GENERATED_MODEL:
+        raise ValueError("Provider-generated staging requires the configured provider model")
     if not isinstance(png,bytes) or not 1<=len(png)<=MAX_BYTES or not png.startswith(b"\x89PNG\r\n\x1a\n"):
         raise ValueError("Invalid normalized AI image")
     meta=validate_generated({"sha256":hashlib.sha256(png).hexdigest(),"model":model})
@@ -115,4 +121,37 @@ def stage_generated(root,png,model):
         load_generated(root,meta)
     else:
         with p.open("xb") as out: out.write(png)
+    return meta
+
+
+def verify_exact_png(raw):
+    """Validate externally supplied PNG bytes without altering or re-encoding them."""
+    from PIL import Image
+    if not isinstance(raw,bytes) or not 1<=len(raw)<=MAX_BYTES or not raw.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise ValueError("Expected a bounded PNG image")
+    try:
+        with Image.open(io.BytesIO(raw)) as im:
+            if im.format!="PNG" or not 1<=im.width<=4096 or not 1<=im.height<=4096 or im.width*im.height>12_000_000 or getattr(im,"n_frames",1)!=1:
+                raise ValueError("Unsupported PNG dimensions or animation")
+            im.verify()
+        with Image.open(io.BytesIO(raw)) as im:
+            im.load()
+    except (OSError, SyntaxError, Image.DecompressionBombError) as exc:
+        raise ValueError("Invalid PNG image") from exc
+    return raw
+
+
+def stage_chatgpt(root,raw,confirmation):
+    """Store the original user-authorized image; provenance is user-attested."""
+    if confirmation!=CHATGPT_CONFIRMATION:
+        raise ValueError("Explicit ChatGPT image confirmation required")
+    verify_exact_png(raw)
+    meta=validate_generated({"sha256":hashlib.sha256(raw).hexdigest(),"model":CHATGPT_IMAGE_MODEL})
+    path=asset_path(root,meta["sha256"])
+    path.parent.mkdir(parents=True,exist_ok=True)
+    if path.exists():
+        load_generated(root,meta)
+    else:
+        with path.open("xb") as out:
+            out.write(raw)
     return meta
